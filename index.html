@@ -82,7 +82,7 @@
     <!-- 1. REGISTRATION FORM VIEW -->
     <div id="viewForm" class="w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden transition-all duration-300">
       <!-- Card Header -->
-      <div class="bg-[#00508C] p-6 text-white flex items-center justify-between">
+      <div class="bg-[#00508C] p-6 text-white">
         <div>
           <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/15 text-sky-200 border border-white/20 mb-2">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,17 +92,6 @@
           </span>
           <h2 class="text-xl sm:text-2xl font-black">Attendee Registration</h2>
         </div>
-
-        <button
-          type="button"
-          id="btnFillSample"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/15 hover:bg-white/25 text-white border border-white/20 transition-all cursor-pointer shadow-sm"
-        >
-          <svg class="w-3.5 h-3.5 text-sky-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-          </svg>
-          <span>Fill Sample</span>
-        </button>
       </div>
 
       <!-- Registration Form -->
@@ -550,58 +539,6 @@
       }
     ];
 
-    // Realistic food safety, manufacturing, and industrial company sample attendees
-    const SAMPLE_ATTENDEES = [
-      {
-        fullName: 'Alex Morgan',
-        companyName: 'San Miguel Foods & Beverages Inc.',
-        email: 'alex.morgan@smfb.com',
-        contactNumber: '+63 917 555 1234',
-        brand: 'Neogen',
-        category: 'Petrifilm Plates & Plate Reader'
-      },
-      {
-        fullName: 'Sophia Ramirez',
-        companyName: 'Universal Robina Manufacturing Corp.',
-        email: 'sophia.ramirez@urc.com.ph',
-        contactNumber: '+63 920 876 5432',
-        brand: 'Kimberly-Clark Professional',
-        category: 'Kimtech Specialty Wipers'
-      },
-      {
-        fullName: 'Marcus Vance',
-        companyName: 'Apex Industrial Processing & Safety',
-        email: 'm.vance@apexindustrial.com',
-        contactNumber: '+63 918 345 6789',
-        brand: 'PIP Global Safety',
-        category: 'Head, Eye, & Ear Protection'
-      },
-      {
-        fullName: 'Elena Rostova',
-        companyName: 'Del Monte Pacific Bio-Filtration',
-        email: 'e.rostova@delmontepacific.com',
-        contactNumber: '+63 927 456 7890',
-        brand: 'Solventum (formerly 3M Health Care)',
-        category: '3M LifeAssure Series Filters'
-      },
-      {
-        fullName: 'Daniel Chen',
-        companyName: 'Prime Thermal Power & Utilities',
-        email: 'd.chen@primesteam.com',
-        contactNumber: '+63 915 678 1234',
-        brand: 'Spirax Sarco',
-        category: 'Boiler Controls & Steam Traps'
-      },
-      {
-        fullName: 'Claire Bennett',
-        companyName: 'AeroClean Facility Services Ltd.',
-        email: 'c.bennett@aeroclean.com',
-        contactNumber: '+63 929 112 2334',
-        brand: 'Kärcher',
-        category: 'Walk-behind / Ride-on Scrubber Driers'
-      }
-    ];
-
     // State Variables
     let prizes = JSON.parse(JSON.stringify(DEFAULT_PRIZES));
     let currentAttendee = {
@@ -684,7 +621,6 @@
     const iconVolumeOn = document.getElementById('iconVolumeOn');
     const iconVolumeOff = document.getElementById('iconVolumeOff');
     const registrationForm = document.getElementById('registrationForm');
-    const btnFillSample = document.getElementById('btnFillSample');
     const btnSubmitForm = document.getElementById('btnSubmitForm');
     const submitBtnText = document.getElementById('submitBtnText');
     const rouletteCanvas = document.getElementById('rouletteCanvas');
@@ -1336,20 +1272,6 @@
       btnSubmitForm.disabled = false;
       submitBtnText.textContent = 'Proceed to Lucky Wheel';
       showWheelView();
-    });
-
-    btnFillSample.addEventListener('click', () => {
-      const sample = SAMPLE_ATTENDEES[Math.floor(Math.random() * SAMPLE_ATTENDEES.length)];
-      inputFullName.value = sample.fullName;
-      inputCompanyName.value = sample.companyName;
-      inputEmail.value = sample.email;
-      inputContactNumber.value = sample.contactNumber;
-      
-      selectBrand.value = sample.brand;
-      updateCategoryDropdown(sample.brand, sample.category);
-
-      [errFullName, errCompanyName, errEmail, errContactNumber, errBrand, errCategory].forEach(el => el.classList.add('hidden'));
-      [inputFullName, inputCompanyName, inputEmail, inputContactNumber, selectBrand, selectCategory].forEach(el => el.classList.remove('border-rose-400'));
     });
 
     btnSpinWheel.addEventListener('click', handleSpin);
