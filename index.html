@@ -360,20 +360,10 @@
               <div>
                 <h3 class="text-base font-bold text-slate-800">Prize Inventory</h3>
                 <p class="text-xs text-slate-500">
-                  Total Stock: <strong id="totalStockCount" class="text-[#00508C]">150</strong> units
+                  Total Stock: <strong id="totalStockCount" class="text-[#00508C]">--</strong> units
                 </p>
               </div>
             </div>
-
-            <button
-              id="btnResetStock"
-              class="inline-flex items-center gap-1 text-xs font-semibold text-[#00508C] hover:text-[#003e6d] bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-              </svg>
-              <span>Reset</span>
-            </button>
           </div>
 
           <!-- Dynamic Inventory List Container -->
@@ -531,8 +521,7 @@
       {
         id: 'neck-pillow',
         name: 'Neck Pillow',
-        stock: 50,
-        initialStock: 50,
+        stock: 0,
         color: '#D97706',
         textColor: '#FFFFFF',
         baseWeight: 1.0, // Even probability distribution
@@ -542,8 +531,7 @@
       {
         id: 'notebook',
         name: 'Notebook',
-        stock: 50,
-        initialStock: 50,
+        stock: 0,
         color: '#00508C',
         textColor: '#FFFFFF',
         baseWeight: 1.0, // Even probability distribution
@@ -553,8 +541,7 @@
       {
         id: 'pen',
         name: 'Pen',
-        stock: 50,
-        initialStock: 50,
+        stock: 0,
         color: '#0284C7',
         textColor: '#FFFFFF',
         baseWeight: 1.0, // Even probability distribution
@@ -708,7 +695,6 @@
     const allOutOfStockNotice = document.getElementById('allOutOfStockNotice');
     const inventoryList = document.getElementById('inventoryList');
     const totalStockCount = document.getElementById('totalStockCount');
-    const btnResetStock = document.getElementById('btnResetStock');
     const btnRegisterNext = document.getElementById('btnRegisterNext');
     const winnerModal = document.getElementById('winnerModal');
     const btnCloseModal = document.getElementById('btnCloseModal');
@@ -812,7 +798,7 @@
 
     // Render Inventory UI
     function renderInventory() {
-      const total = prizes.reduce((a, b) => a + b.stock, 0);
+      const total = prizes.reduce((a, b) => a + (Number(b.stock) || 0), 0);
       totalStockCount.textContent = total;
 
       const totalWeight = getTotalWeight();
@@ -829,7 +815,6 @@
 
       inventoryList.innerHTML = prizes.map(item => {
         const isDepleted = item.stock <= 0;
-        const percentage = Math.round((item.stock / item.initialStock) * 100);
 
         return `
           <div class="p-3.5 rounded-2xl border transition-all ${
@@ -837,7 +822,7 @@
               ? 'bg-slate-100/70 border-slate-200 opacity-60'
               : 'bg-slate-50/70 border-slate-200/80 hover:bg-white hover:border-[#00508C]/40 hover:shadow-sm'
           }">
-            <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center justify-between mb-1.5">
               <div class="flex items-center gap-2">
                 <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${item.color}"></span>
                 <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
@@ -850,15 +835,8 @@
                   ? 'bg-rose-100 text-rose-800 border-rose-200'
                   : 'bg-[#00508C]/10 text-[#00508C] border-[#00508C]/20'
               }">
-                ${isDepleted ? 'Out of Stock' : `${item.stock} / ${item.initialStock}`}
+                ${isDepleted ? 'Out of Stock' : `${item.stock} in stock`}
               </span>
-            </div>
-
-            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-2">
-              <div
-                class="h-full rounded-full transition-all duration-300"
-                style="width: ${percentage}%; background-color: ${isDepleted ? '#94A3B8' : item.color};"
-              ></div>
             </div>
 
             <div class="flex items-center justify-between text-[11px] text-slate-500 font-medium">
@@ -867,6 +845,28 @@
           </div>
         `;
       }).join('');
+    }
+
+    // Fetch dynamic live inventory from Google Apps Script endpoint
+    async function fetchLiveInventory() {
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, { method: 'GET' });
+        if (response.ok) {
+          const data = await response.json();
+          if (data && typeof data === 'object') {
+            prizes.forEach(item => {
+              const count = data[item.name] ?? data[item.id] ?? (data.inventory && (data.inventory[item.name] ?? data.inventory[item.id]));
+              if (typeof count === 'number') {
+                item.stock = Math.max(0, count);
+              }
+            });
+            renderInventory();
+            drawWheel(rotationAngle);
+          }
+        }
+      } catch (err) {
+        console.warn('Google Apps Script live inventory fetch note:', err);
+      }
     }
 
     // HTML5 Canvas Wheel Renderer
@@ -1330,27 +1330,12 @@
       btnSubmitForm.disabled = true;
       submitBtnText.textContent = 'Connecting...';
 
-      // Fetch initial inventory counts from APPS_SCRIPT_URL
-      try {
-        const response = await fetch(APPS_SCRIPT_URL, { method: 'GET' });
-        if (response.ok) {
-          const data = await response.json();
-          if (data && typeof data === 'object') {
-            prizes.forEach(item => {
-              const count = data[item.name] ?? data[item.id] ?? (data.inventory && data.inventory[item.name]);
-              if (typeof count === 'number') {
-                item.stock = count;
-              }
-            });
-          }
-        }
-      } catch (err) {
-        console.warn('Apps Script GET inventory note:', err);
-      } finally {
-        btnSubmitForm.disabled = false;
-        submitBtnText.textContent = 'Proceed to Lucky Wheel';
-        showWheelView();
-      }
+      // Fetch live inventory counts from APPS_SCRIPT_URL
+      await fetchLiveInventory();
+
+      btnSubmitForm.disabled = false;
+      submitBtnText.textContent = 'Proceed to Lucky Wheel';
+      showWheelView();
     });
 
     btnFillSample.addEventListener('click', () => {
@@ -1369,16 +1354,14 @@
 
     btnSpinWheel.addEventListener('click', handleSpin);
 
-    btnResetStock.addEventListener('click', () => {
-      if (confirm('Reset all prize stock counts back to 50?')) {
-        prizes = JSON.parse(JSON.stringify(DEFAULT_PRIZES));
-        renderInventory();
-        drawWheel(rotationAngle);
-      }
+    btnBackToForm.addEventListener('click', () => {
+      fetchLiveInventory();
+      showFormView(false);
     });
-
-    btnBackToForm.addEventListener('click', () => showFormView(false));
-    btnRegisterNext.addEventListener('click', () => showFormView(true));
+    btnRegisterNext.addEventListener('click', () => {
+      fetchLiveInventory();
+      showFormView(true);
+    });
 
     btnCloseModal.addEventListener('click', () => winnerModal.classList.add('hidden'));
     if (btnCloseModalBtn) {
@@ -1386,6 +1369,7 @@
     }
     btnModalNextAttendee.addEventListener('click', () => {
       winnerModal.classList.add('hidden');
+      fetchLiveInventory();
       showFormView(true);
     });
 
@@ -1411,6 +1395,7 @@
     initBrandOptions();
     renderInventory();
     drawWheel(0);
+    fetchLiveInventory();
   </script>
 </body>
 </html>
