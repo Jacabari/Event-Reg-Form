@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PAFT 2026 | GRB Booth | Register and Win!</title>
+  <title>GRB Booth Registration Form</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -30,6 +30,12 @@
     .animate-spin-slow {
       animation: spinSlow 3s linear infinite;
     }
+    /* Custom style for disabled select appearance */
+    select:disabled {
+      background-color: #f1f5f9;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col selection:bg-[#00508C] selection:text-white font-sans antialiased">
@@ -41,7 +47,7 @@
   <header id="mainHeader" class="bg-[#00508C] text-white shadow-md border-b border-[#003e6d]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
       <h1 class="text-base sm:text-xl font-bold tracking-tight text-white">
-        PAFT 2026 | GRB Booth | Register and Win!
+        GRB Booth Registration Form
       </h1>
 
       <div class="flex items-center gap-2">
@@ -139,7 +145,7 @@
                 id="inputCompanyName"
                 name="companyName"
                 type="text"
-                placeholder="e.g. Vertex Solutions Inc."
+                placeholder="e.g. Vertex Manufacturing Corp."
                 class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 focus:border-[#00508C] focus:ring-2 focus:ring-[#00508C]/20 text-sm font-medium transition-all bg-slate-50/50 focus:bg-white focus:outline-none"
               />
             </div>
@@ -161,7 +167,7 @@
                 id="inputEmail"
                 name="email"
                 type="email"
-                placeholder="alex.morgan@vertexsolutions.io"
+                placeholder="alex.morgan@example.com"
                 class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 focus:border-[#00508C] focus:ring-2 focus:ring-[#00508C]/20 text-sm font-medium transition-all bg-slate-50/50 focus:bg-white focus:outline-none"
               />
             </div>
@@ -183,33 +189,67 @@
                 id="inputContactNumber"
                 name="contactNumber"
                 type="tel"
-                placeholder="+1 (555) 234-5678"
+                placeholder="+63 917 123 4567"
                 class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 focus:border-[#00508C] focus:ring-2 focus:ring-[#00508C]/20 text-sm font-medium transition-all bg-slate-50/50 focus:bg-white focus:outline-none"
               />
             </div>
             <p id="errContactNumber" class="text-xs text-rose-600 font-medium pl-1 hidden"></p>
           </div>
 
-          <!-- Product Interest -->
-          <div class="sm:col-span-2 space-y-1.5">
-            <label for="inputProductInterest" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
-              Product Interest <span class="text-rose-500">*</span>
+          <!-- Primary Dropdown: Brand / Partner -->
+          <div class="space-y-1.5">
+            <label for="selectBrand" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+              Brand / Partner <span class="text-rose-500">*</span>
             </label>
             <div class="relative">
-              <div class="absolute top-3 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+              </div>
+              <select
+                id="selectBrand"
+                name="brand"
+                class="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 focus:border-[#00508C] focus:ring-2 focus:ring-[#00508C]/20 text-sm font-medium transition-all bg-slate-50/50 focus:bg-white focus:outline-none appearance-none cursor-pointer"
+              >
+                <option value="">Select Brand / Partner...</option>
+                <!-- Populated dynamically via JS -->
+              </select>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </div>
+            </div>
+            <p id="errBrand" class="text-xs text-rose-600 font-medium pl-1 hidden"></p>
+          </div>
+
+          <!-- Secondary Dynamic Dropdown: Product Line / Category -->
+          <div class="space-y-1.5">
+            <label for="selectCategory" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+              Product Line / Category <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
                 </svg>
               </div>
-              <textarea
-                id="inputProductInterest"
-                name="productInterest"
-                rows="3"
-                placeholder="e.g. Cloud Solutions, AI Automation, Food Processing Equipment..."
-                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 focus:border-[#00508C] focus:ring-2 focus:ring-[#00508C]/20 text-sm font-medium transition-all bg-slate-50/50 focus:bg-white focus:outline-none resize-none"
-              ></textarea>
+              <select
+                id="selectCategory"
+                name="category"
+                disabled
+                class="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 focus:border-[#00508C] focus:ring-2 focus:ring-[#00508C]/20 text-sm font-medium transition-all bg-slate-50/50 focus:bg-white focus:outline-none appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+              >
+                <option value="">Select a brand first...</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </div>
             </div>
-            <p id="errProductInterest" class="text-xs text-rose-600 font-medium pl-1 hidden"></p>
+            <p id="errCategory" class="text-xs text-rose-600 font-medium pl-1 hidden"></p>
           </div>
         </div>
 
@@ -244,7 +284,7 @@
               <span class="text-sm font-normal text-slate-500" id="displayCompanyName">(Company)</span>
             </h3>
             <p class="text-xs text-slate-500">
-              <span id="displayEmail">email@domain.com</span> • Interest: <strong class="text-slate-700" id="displayInterest">General</strong>
+              <span id="displayEmail">email@domain.com</span> • Interest: <strong class="text-[#00508C] font-semibold" id="displayInterest">General</strong>
             </p>
           </div>
         </div>
@@ -415,8 +455,83 @@
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
-    // 3. Web App API Constant defined at top of JS section
+    // Web App API Constant
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw0JihxKawFecjwF2uUcmJFmvEYmrno6eP7KNQGMQk2SYvTTabYkHVliiu5d0a1UpBo/exec";
+
+    // Brand and Product Line / Category Hierarchy
+    const BRAND_OFFERINGS = {
+      "Neogen": [
+        "Petrifilm Plates & Plate Reader",
+        "Soleris Rapid Microbiology",
+        "Dehydrated Culture Media",
+        "Sample Handling",
+        "Hygiene Monitoring System",
+        "Colitag Water Test System",
+        "Allergen Testing Solutions",
+        "Mycotoxin Testing Solutions",
+        "MLS UHT/ESL Testing",
+        "Megazyme Nutritional Analysis",
+        "Pathogen Molecular Detection System"
+      ],
+      "3M": [
+        "Entrance Matting System",
+        "Anti-Slip Tapes & Threads",
+        "Stone Floor Products",
+        "Surface Care Products",
+        "Kitchen Care Products",
+        "Bathroom Care Products",
+        "Wipes & Cloths",
+        "Scotch-Brite Scouring Pads",
+        "Scotch-Brite Quick Clean Griddle Starter",
+        "Vinyl, Resilient, & Rubber Tile Floor Products"
+      ],
+      "Kimberly-Clark Professional": [
+        "Paper Towel Range",
+        "Scott Proprietary Branded System",
+        "Skin Care Range",
+        "Kimtech Wettask System",
+        "Facial & Bathroom Tissue",
+        "Scott Centerpull Bathroom Tissue",
+        "Table Napkins & Air Care",
+        "Kimtech Specialty Wipers",
+        "Wypall Extended Use Wipers",
+        "Wypall Specialty Wipers",
+        "Wypall Limited Use Wipers",
+        "Kimtech Wipers"
+      ],
+      "Kärcher": [
+        "Dry / Wet & Dry Vacuum Cleaners",
+        "Cold / Hot High Pressure Washers",
+        "Walk-behind / Ride-on Scrubber Driers",
+        "Single Disc Polishers & Sweepers",
+        "Carpet Vacuum & Steam Cleaners"
+      ],
+      "Bibliotheca": [
+        "Selfcheck & Detection Systems",
+        "RFID Solutions & Tattle-Tape Strips",
+        "Staff Workstation & Book Check"
+      ],
+      "PIP Global Safety": [
+        "Head, Eye, & Ear Protection",
+        "Self-Contained Breathing Apparatus",
+        "Safety Shoes"
+      ],
+      "Excia": [
+        "Protective Gloves",
+        "Protective Coveralls"
+      ],
+      "Solventum (formerly 3M Health Care)": [
+        "3M LifeAssure Series Filters",
+        "3M High Flow Series Filter Cartridges",
+        "3M Micro-Klean D Series Filter Cartridge",
+        "3M Zeta Plus H Series Filtration Media"
+      ],
+      "Spirax Sarco": [
+        "Boiler Controls & Steam Traps",
+        "Heat Transfer & Recovery Systems",
+        "Pipeline Ancillaries & Isolation Valves"
+      ]
+    };
 
     // Prize definitions (5 items with default 50 stock, Neck Pillow has significantly lower probability baseWeight)
     const DEFAULT_PRIZES = [
@@ -477,27 +592,55 @@
       }
     ];
 
+    // Realistic food safety, manufacturing, and industrial company sample attendees
     const SAMPLE_ATTENDEES = [
       {
         fullName: 'Alex Morgan',
-        companyName: 'Vertex Solutions Inc.',
-        email: 'alex.morgan@vertexsolutions.io',
-        contactNumber: '+1 (555) 234-5678',
-        productInterest: 'Enterprise Cloud Architecture & Data Analytics'
+        companyName: 'San Miguel Foods & Beverages Inc.',
+        email: 'alex.morgan@smfb.com',
+        contactNumber: '+63 917 555 1234',
+        brand: 'Neogen',
+        category: 'Petrifilm Plates & Plate Reader'
       },
       {
         fullName: 'Sophia Ramirez',
-        companyName: 'NovaTech Health',
-        email: 'sophia.r@novatechhealth.com',
-        contactNumber: '+1 (555) 876-5432',
-        productInterest: 'AI Diagnostics & Automated Medical Processing'
+        companyName: 'Universal Robina Manufacturing Corp.',
+        email: 'sophia.ramirez@urc.com.ph',
+        contactNumber: '+63 920 876 5432',
+        brand: 'Kimberly-Clark Professional',
+        category: 'Kimtech Specialty Wipers'
       },
       {
         fullName: 'Marcus Vance',
-        companyName: 'Horizon Logistics Global',
-        email: 'm.vance@horizonlogistics.org',
-        contactNumber: '+1 (555) 345-6789',
-        productInterest: 'Fleet Telematics & Cold Chain Logistics'
+        companyName: 'Apex Industrial Processing & Safety',
+        email: 'm.vance@apexindustrial.com',
+        contactNumber: '+63 918 345 6789',
+        brand: 'PIP Global Safety',
+        category: 'Head, Eye, & Ear Protection'
+      },
+      {
+        fullName: 'Elena Rostova',
+        companyName: 'Del Monte Pacific Bio-Filtration',
+        email: 'e.rostova@delmontepacific.com',
+        contactNumber: '+63 927 456 7890',
+        brand: 'Solventum (formerly 3M Health Care)',
+        category: '3M LifeAssure Series Filters'
+      },
+      {
+        fullName: 'Daniel Chen',
+        companyName: 'Prime Thermal Power & Utilities',
+        email: 'd.chen@primesteam.com',
+        contactNumber: '+63 915 678 1234',
+        brand: 'Spirax Sarco',
+        category: 'Boiler Controls & Steam Traps'
+      },
+      {
+        fullName: 'Claire Bennett',
+        companyName: 'AeroClean Facility Services Ltd.',
+        email: 'c.bennett@aeroclean.com',
+        contactNumber: '+63 929 112 2334',
+        brand: 'Kärcher',
+        category: 'Walk-behind / Ride-on Scrubber Driers'
       }
     ];
 
@@ -508,6 +651,8 @@
       companyName: '',
       email: '',
       contactNumber: '',
+      brand: '',
+      category: '',
       productInterest: ''
     };
     let soundEnabled = true;
@@ -618,13 +763,59 @@
     const inputCompanyName = document.getElementById('inputCompanyName');
     const inputEmail = document.getElementById('inputEmail');
     const inputContactNumber = document.getElementById('inputContactNumber');
-    const inputProductInterest = document.getElementById('inputProductInterest');
+    const selectBrand = document.getElementById('selectBrand');
+    const selectCategory = document.getElementById('selectCategory');
 
     const errFullName = document.getElementById('errFullName');
     const errCompanyName = document.getElementById('errCompanyName');
     const errEmail = document.getElementById('errEmail');
     const errContactNumber = document.getElementById('errContactNumber');
-    const errProductInterest = document.getElementById('errProductInterest');
+    const errBrand = document.getElementById('errBrand');
+    const errCategory = document.getElementById('errCategory');
+
+    // Initialize Brand Dropdown
+    function initBrandOptions() {
+      const brandKeys = Object.keys(BRAND_OFFERINGS);
+      selectBrand.innerHTML = '<option value="">Select Brand / Partner...</option>' + 
+        brandKeys.map(b => `<option value="${b}">${b}</option>`).join('');
+    }
+
+    // Populate Secondary Category Dropdown dynamically based on selected brand
+    function updateCategoryDropdown(selectedBrand, preselectedCategory = '') {
+      if (!selectedBrand || !BRAND_OFFERINGS[selectedBrand]) {
+        selectCategory.innerHTML = '<option value="">Select a brand first...</option>';
+        selectCategory.disabled = true;
+        selectCategory.value = '';
+        return;
+      }
+
+      const categories = BRAND_OFFERINGS[selectedBrand];
+      selectCategory.innerHTML = '<option value="">Select Product Line / Category...</option>' + 
+        categories.map(c => `<option value="${c}">${c}</option>`).join('');
+      selectCategory.disabled = false;
+
+      if (preselectedCategory && categories.includes(preselectedCategory)) {
+        selectCategory.value = preselectedCategory;
+      }
+    }
+
+    selectBrand.addEventListener('change', e => {
+      const brand = e.target.value;
+      updateCategoryDropdown(brand);
+      if (brand) {
+        errBrand.classList.add('hidden');
+        selectBrand.classList.remove('border-rose-400');
+      }
+      errCategory.classList.add('hidden');
+      selectCategory.classList.remove('border-rose-400');
+    });
+
+    selectCategory.addEventListener('change', e => {
+      if (e.target.value) {
+        errCategory.classList.add('hidden');
+        selectCategory.classList.remove('border-rose-400');
+      }
+    });
 
     // Probability & Weight Helpers
     function getActiveWeights() {
@@ -993,12 +1184,14 @@
           audio.playWin();
           triggerConfetti();
 
-          // 7. POST payload to APPS_SCRIPT_URL
+          // POST payload to APPS_SCRIPT_URL
           const payload = {
             fullName: currentAttendee.fullName,
             companyName: currentAttendee.companyName,
             email: currentAttendee.email,
             contactNumber: currentAttendee.contactNumber,
+            brand: currentAttendee.brand,
+            category: currentAttendee.category,
             productInterest: currentAttendee.productInterest,
             wonPrize: won.name,
             remainingStock: newStock,
@@ -1089,15 +1282,26 @@
         inputContactNumber.classList.remove('border-rose-400');
       }
 
-      // Product Interest
-      if (!inputProductInterest.value.trim()) {
-        errProductInterest.textContent = 'Product Interest is required.';
-        errProductInterest.classList.remove('hidden');
-        inputProductInterest.classList.add('border-rose-400');
+      // Brand Selection
+      if (!selectBrand.value.trim()) {
+        errBrand.textContent = 'Brand / Partner is required.';
+        errBrand.classList.remove('hidden');
+        selectBrand.classList.add('border-rose-400');
         isValid = false;
       } else {
-        errProductInterest.classList.add('hidden');
-        inputProductInterest.classList.remove('border-rose-400');
+        errBrand.classList.add('hidden');
+        selectBrand.classList.remove('border-rose-400');
+      }
+
+      // Category Selection
+      if (!selectCategory.value.trim()) {
+        errCategory.textContent = 'Product Line / Category is required.';
+        errCategory.classList.remove('hidden');
+        selectCategory.classList.add('border-rose-400');
+        isValid = false;
+      } else {
+        errCategory.classList.add('hidden');
+        selectCategory.classList.remove('border-rose-400');
       }
 
       return isValid;
@@ -1126,9 +1330,19 @@
 
       if (clearForm) {
         registrationForm.reset();
-        currentAttendee = { fullName: '', companyName: '', email: '', contactNumber: '', productInterest: '' };
-        [errFullName, errCompanyName, errEmail, errContactNumber, errProductInterest].forEach(el => el.classList.add('hidden'));
-        [inputFullName, inputCompanyName, inputEmail, inputContactNumber, inputProductInterest].forEach(el => el.classList.remove('border-rose-400'));
+        selectCategory.innerHTML = '<option value="">Select a brand first...</option>';
+        selectCategory.disabled = true;
+        currentAttendee = {
+          fullName: '',
+          companyName: '',
+          email: '',
+          contactNumber: '',
+          brand: '',
+          category: '',
+          productInterest: ''
+        };
+        [errFullName, errCompanyName, errEmail, errContactNumber, errBrand, errCategory].forEach(el => el.classList.add('hidden'));
+        [inputFullName, inputCompanyName, inputEmail, inputContactNumber, selectBrand, selectCategory].forEach(el => el.classList.remove('border-rose-400'));
       }
     }
 
@@ -1137,18 +1351,24 @@
       e.preventDefault();
       if (!validateInputs()) return;
 
+      const brandVal = selectBrand.value.trim();
+      const catVal = selectCategory.value.trim();
+      const combinedInterest = `${brandVal} - ${catVal}`;
+
       currentAttendee = {
         fullName: inputFullName.value.trim(),
         companyName: inputCompanyName.value.trim(),
         email: inputEmail.value.trim(),
         contactNumber: inputContactNumber.value.trim(),
-        productInterest: inputProductInterest.value.trim()
+        brand: brandVal,
+        category: catVal,
+        productInterest: combinedInterest
       };
 
       btnSubmitForm.disabled = true;
       submitBtnText.textContent = 'Connecting...';
 
-      // 5. Fetch initial inventory counts from APPS_SCRIPT_URL
+      // Fetch initial inventory counts from APPS_SCRIPT_URL
       try {
         const response = await fetch(APPS_SCRIPT_URL, { method: 'GET' });
         if (response.ok) {
@@ -1177,9 +1397,12 @@
       inputCompanyName.value = sample.companyName;
       inputEmail.value = sample.email;
       inputContactNumber.value = sample.contactNumber;
-      inputProductInterest.value = sample.productInterest;
-      [errFullName, errCompanyName, errEmail, errContactNumber, errProductInterest].forEach(el => el.classList.add('hidden'));
-      [inputFullName, inputCompanyName, inputEmail, inputContactNumber, inputProductInterest].forEach(el => el.classList.remove('border-rose-400'));
+      
+      selectBrand.value = sample.brand;
+      updateCategoryDropdown(sample.brand, sample.category);
+
+      [errFullName, errCompanyName, errEmail, errContactNumber, errBrand, errCategory].forEach(el => el.classList.add('hidden'));
+      [inputFullName, inputCompanyName, inputEmail, inputContactNumber, selectBrand, selectCategory].forEach(el => el.classList.remove('border-rose-400'));
     });
 
     btnSpinWheel.addEventListener('click', handleSpin);
@@ -1221,6 +1444,7 @@
     });
 
     // Initial Setup
+    initBrandOptions();
     renderInventory();
     drawWheel(0);
   </script>
