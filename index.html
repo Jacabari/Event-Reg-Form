@@ -360,7 +360,7 @@
               <div>
                 <h3 class="text-base font-bold text-slate-800">Prize Inventory</h3>
                 <p class="text-xs text-slate-500">
-                  Total Stock: <strong id="totalStockCount" class="text-[#00508C]">250</strong> units
+                  Total Stock: <strong id="totalStockCount" class="text-[#00508C]">150</strong> units
                 </p>
               </div>
             </div>
@@ -379,13 +379,6 @@
           <!-- Dynamic Inventory List Container -->
           <div id="inventoryList" class="space-y-3 flex-1">
             <!-- Rendered dynamically by JavaScript -->
-          </div>
-
-          <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-600 bg-sky-50 p-3 rounded-xl border border-sky-100">
-            <p class="font-bold text-[#00508C]">⚖️ Weighted Probability Enforced</p>
-            <p class="text-[11px] text-slate-600 mt-0.5">
-              Neck Pillow has significantly lower odds (~5.9%) than other items (~23.5% each). Any item with 0 stock is completely excluded.
-            </p>
           </div>
         </div>
       </div>
@@ -533,52 +526,8 @@
       ]
     };
 
-    // Prize definitions (5 items with default 50 stock, Neck Pillow has significantly lower probability baseWeight)
+    // Prize definitions: Neck Pillow (Grand Prize with lower weighted odds), Notebook, and Pen
     const DEFAULT_PRIZES = [
-      {
-        id: 'sticker',
-        name: 'Sticker',
-        stock: 50,
-        initialStock: 50,
-        color: '#00508C',
-        textColor: '#FFFFFF',
-        baseWeight: 1.0,
-        icon: '✨',
-        description: 'Waterproof vinyl event sticker pack'
-      },
-      {
-        id: 'keychain',
-        name: 'Key Chain',
-        stock: 50,
-        initialStock: 50,
-        color: '#0284C7',
-        textColor: '#FFFFFF',
-        baseWeight: 1.0,
-        icon: '🔑',
-        description: 'Custom metal & enamel branded keychain'
-      },
-      {
-        id: 'pen',
-        name: 'Pen',
-        stock: 50,
-        initialStock: 50,
-        color: '#0D9488',
-        textColor: '#FFFFFF',
-        baseWeight: 1.0,
-        icon: '✒️',
-        description: 'Ergonomic smooth gel rollerball pen'
-      },
-      {
-        id: 'notebook',
-        name: 'Notebook',
-        stock: 50,
-        initialStock: 50,
-        color: '#2563EB',
-        textColor: '#FFFFFF',
-        baseWeight: 1.0,
-        icon: '📓',
-        description: 'Hardcover debossed executive notebook'
-      },
       {
         id: 'neck-pillow',
         name: 'Neck Pillow',
@@ -586,9 +535,32 @@
         initialStock: 50,
         color: '#D97706',
         textColor: '#FFFFFF',
-        baseWeight: 0.25, // Significantly lower probability (Grand Prize)
+        baseWeight: 0.20, // Grand Prize: significantly lower probability behind the scenes
         icon: '🌟',
-        description: 'Deluxe ergonomic memory foam travel neck pillow'
+        description: 'Deluxe ergonomic memory foam travel neck pillow',
+        isGrandPrize: true
+      },
+      {
+        id: 'notebook',
+        name: 'Notebook',
+        stock: 50,
+        initialStock: 50,
+        color: '#00508C',
+        textColor: '#FFFFFF',
+        baseWeight: 1.0,
+        icon: '📓',
+        description: 'Hardcover debossed executive notebook'
+      },
+      {
+        id: 'pen',
+        name: 'Pen',
+        stock: 50,
+        initialStock: 50,
+        color: '#0284C7',
+        textColor: '#FFFFFF',
+        baseWeight: 1.0,
+        icon: '✒️',
+        description: 'Ergonomic smooth gel rollerball pen'
       }
     ];
 
@@ -859,24 +831,22 @@
       inventoryList.innerHTML = prizes.map(item => {
         const isDepleted = item.stock <= 0;
         const percentage = Math.round((item.stock / item.initialStock) * 100);
-        const winChance = (totalWeight > 0 && item.stock > 0)
-          ? ((item.baseWeight / totalWeight) * 100).toFixed(1)
-          : '0.0';
 
         return `
-          <div class="p-3 rounded-xl border transition-all ${
+          <div class="p-3.5 rounded-2xl border transition-all ${
             isDepleted
               ? 'bg-slate-100/70 border-slate-200 opacity-60'
-              : 'bg-slate-50/70 border-slate-200/80 hover:bg-white hover:border-[#00508C]/40'
+              : 'bg-slate-50/70 border-slate-200/80 hover:bg-white hover:border-[#00508C]/40 hover:shadow-sm'
           }">
-            <div class="flex items-center justify-between mb-1.5">
+            <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
-                <span class="w-3 h-3 rounded-full shrink-0" style="background-color: ${item.color}"></span>
-                <span class="text-sm font-bold text-slate-800">
-                  ${item.icon} ${item.name}
+                <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${item.color}"></span>
+                <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                  <span>${item.icon}</span> <span>${item.name}</span>
                 </span>
+                ${item.isGrandPrize ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold border border-amber-200">Grand Prize</span>' : ''}
               </div>
-              <span class="text-xs font-extrabold px-2 py-0.5 rounded-full border ${
+              <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${
                 isDepleted
                   ? 'bg-rose-100 text-rose-800 border-rose-200'
                   : 'bg-[#00508C]/10 text-[#00508C] border-[#00508C]/20'
@@ -885,7 +855,7 @@
               </span>
             </div>
 
-            <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mb-1.5">
+            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-2">
               <div
                 class="h-full rounded-full transition-all duration-300"
                 style="width: ${percentage}%; background-color: ${isDepleted ? '#94A3B8' : item.color};"
@@ -893,14 +863,7 @@
             </div>
 
             <div class="flex items-center justify-between text-[11px] text-slate-500 font-medium">
-              <span class="flex items-center gap-1 font-semibold text-slate-700">
-                <svg class="w-3 h-3 text-[#00508C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
-                </svg>
-                <span>Win Odds: <strong class="text-[#00508C]">${winChance}%</strong></span>
-                ${item.baseWeight < 1.0 ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-1 rounded font-bold">Grand Prize</span>' : ''}
-              </span>
-              <span class="truncate max-w-[140px]">${item.description}</span>
+              <span class="text-slate-600 truncate">${item.description}</span>
             </div>
           </div>
         `;
@@ -979,18 +942,18 @@
         ctx.textBaseline = 'middle';
 
         ctx.fillStyle = isOutOfStock ? '#475569' : item.textColor;
-        ctx.font = 'bold 15px sans-serif';
+        ctx.font = 'bold 16px sans-serif';
         const label = isOutOfStock ? `${item.name} (0)` : `${item.icon} ${item.name}`;
         ctx.fillText(label, radius - 24, 0);
 
         ctx.fillStyle = isOutOfStock ? '#64748B' : 'rgba(255, 255, 255, 0.85)';
-        ctx.font = '600 11px sans-serif';
-        ctx.fillText(isOutOfStock ? 'OUT OF STOCK' : `Qty: ${item.stock}`, radius - 24, 18);
+        ctx.font = '600 12px sans-serif';
+        ctx.fillText(isOutOfStock ? 'OUT OF STOCK' : `Qty: ${item.stock}`, radius - 24, 20);
         ctx.restore();
       }
 
       // Outer Pin Studs
-      const numPins = numSegments * 4;
+      const numPins = numSegments * 6;
       const pinArc = (Math.PI * 2) / numPins;
       for (let p = 0; p < numPins; p++) {
         const pinAngle = p * pinArc;
