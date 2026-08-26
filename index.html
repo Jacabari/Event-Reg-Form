@@ -430,10 +430,10 @@
         <!-- Modal Action Buttons -->
         <div class="grid grid-cols-2 gap-3 w-full mt-1">
           <button
-            id="btnModalSpinAgain"
+            id="btnCloseModalBtn"
             class="py-3 px-4 rounded-xl text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer"
           >
-            Spin Again
+            Close
           </button>
           <button
             id="btnModalNextAttendee"
@@ -526,7 +526,7 @@
       ]
     };
 
-    // Prize definitions: Neck Pillow (Grand Prize with lower weighted odds), Notebook, and Pen
+    // Prize definitions: Neck Pillow, Notebook, and Pen (divided evenly among valid prizes)
     const DEFAULT_PRIZES = [
       {
         id: 'neck-pillow',
@@ -535,10 +535,9 @@
         initialStock: 50,
         color: '#D97706',
         textColor: '#FFFFFF',
-        baseWeight: 0.20, // Grand Prize: significantly lower probability behind the scenes
+        baseWeight: 1.0, // Even probability distribution
         icon: '🌟',
-        description: 'Deluxe ergonomic memory foam travel neck pillow',
-        isGrandPrize: true
+        description: 'Deluxe ergonomic memory foam travel neck pillow'
       },
       {
         id: 'notebook',
@@ -547,7 +546,7 @@
         initialStock: 50,
         color: '#00508C',
         textColor: '#FFFFFF',
-        baseWeight: 1.0,
+        baseWeight: 1.0, // Even probability distribution
         icon: '📓',
         description: 'Hardcover debossed executive notebook'
       },
@@ -558,7 +557,7 @@
         initialStock: 50,
         color: '#0284C7',
         textColor: '#FFFFFF',
-        baseWeight: 1.0,
+        baseWeight: 1.0, // Even probability distribution
         icon: '✒️',
         description: 'Ergonomic smooth gel rollerball pen'
       }
@@ -713,7 +712,7 @@
     const btnRegisterNext = document.getElementById('btnRegisterNext');
     const winnerModal = document.getElementById('winnerModal');
     const btnCloseModal = document.getElementById('btnCloseModal');
-    const btnModalSpinAgain = document.getElementById('btnModalSpinAgain');
+    const btnCloseModalBtn = document.getElementById('btnCloseModalBtn');
     const btnModalNextAttendee = document.getElementById('btnModalNextAttendee');
     const modalPrizeIconBox = document.getElementById('modalPrizeIconBox');
     const modalWinnerName = document.getElementById('modalWinnerName');
@@ -1382,7 +1381,9 @@
     btnRegisterNext.addEventListener('click', () => showFormView(true));
 
     btnCloseModal.addEventListener('click', () => winnerModal.classList.add('hidden'));
-    btnModalSpinAgain.addEventListener('click', () => winnerModal.classList.add('hidden'));
+    if (btnCloseModalBtn) {
+      btnCloseModalBtn.addEventListener('click', () => winnerModal.classList.add('hidden'));
+    }
     btnModalNextAttendee.addEventListener('click', () => {
       winnerModal.classList.add('hidden');
       showFormView(true);
