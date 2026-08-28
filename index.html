@@ -510,7 +510,7 @@
       {
         id: 'neck-pillow',
         name: 'Neck Pillow',
-        stock: 0,
+        stock: 50,
         color: '#D97706',
         textColor: '#FFFFFF',
         baseWeight: 1.0, // Even probability distribution
@@ -520,7 +520,7 @@
       {
         id: 'notebook',
         name: 'Notebook',
-        stock: 0,
+        stock: 50,
         color: '#00508C',
         textColor: '#FFFFFF',
         baseWeight: 1.0, // Even probability distribution
@@ -530,7 +530,7 @@
       {
         id: 'pen',
         name: 'Pen',
-        stock: 0,
+        stock: 50,
         color: '#0284C7',
         textColor: '#FFFFFF',
         baseWeight: 1.0, // Even probability distribution
@@ -1262,7 +1262,7 @@
     }
 
     // Event Listeners
-    registrationForm.addEventListener('submit', async e => {
+    registrationForm.addEventListener('submit', e => {
       e.preventDefault();
       if (!validateInputs()) return;
 
@@ -1280,16 +1280,11 @@
         productInterest: combinedInterest
       };
 
-      btnSubmitForm.disabled = true;
-      submitBtnText.textContent = 'Connecting...';
-
-      // Fetch live inventory counts from APPS_SCRIPT_URL
-      await fetchLiveInventory();
-
       hasSpun = false;
-      btnSubmitForm.disabled = false;
-      submitBtnText.textContent = 'Proceed to Lucky Wheel';
       showWheelView();
+
+      // Trigger background live inventory refresh non-blocking
+      fetchLiveInventory();
     });
 
     btnSpinWheel.addEventListener('click', handleSpin);
