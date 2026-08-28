@@ -552,6 +552,7 @@
     };
     let soundEnabled = true;
     let isSpinning = false;
+    let hasSpun = false;
     let rotationAngle = 0;
     let animationFrameId = null;
     let lastTickSegment = -1;
@@ -989,7 +990,7 @@
 
     // Spin Handler with Deceleration & API Sync
     function handleSpin() {
-      if (isSpinning || getTotalWeight() <= 0) return;
+      if (hasSpun || isSpinning || getTotalWeight() <= 0) return;
 
       const winningIndex = selectWinningIndex();
       if (winningIndex === -1) return;
@@ -1051,13 +1052,14 @@
           rotationAngle = endRot;
           drawWheel(endRot);
           isSpinning = false;
+          hasSpun = true;
           wheelPointer.style.transform = 'translateX(-50%) rotate(0deg)';
 
-          btnSpinWheel.disabled = false;
-          btnSpinWheel.classList.remove('bg-slate-400', 'cursor-not-allowed', 'scale-95', 'opacity-80');
-          btnSpinWheel.classList.add('bg-[#00508C]', 'hover:bg-[#003e6d]', 'hover:scale-105', 'active:scale-95');
-          spinBtnText.textContent = 'SPIN THE WHEEL';
-          spinStatusMsg.textContent = 'Ready to spin!';
+          btnSpinWheel.disabled = true;
+          btnSpinWheel.classList.add('bg-slate-400', 'cursor-not-allowed', 'scale-95', 'opacity-80');
+          btnSpinWheel.classList.remove('bg-[#00508C]', 'hover:bg-[#003e6d]', 'hover:scale-105', 'active:scale-95');
+          spinBtnText.textContent = 'SPIN COMPLETED';
+          spinStatusMsg.textContent = 'Spin completed for this attendee. Register next attendee for another spin.';
 
           const won = prizes[winningIndex];
           const newStock = Math.max(0, won.stock - 1);
@@ -1216,6 +1218,20 @@
       displayEmail.textContent = currentAttendee.email;
       displayInterest.textContent = currentAttendee.productInterest;
 
+      if (!hasSpun && getTotalWeight() > 0) {
+        btnSpinWheel.disabled = false;
+        btnSpinWheel.classList.remove('bg-slate-400', 'cursor-not-allowed', 'scale-95', 'opacity-80');
+        btnSpinWheel.classList.add('bg-[#00508C]', 'hover:bg-[#003e6d]', 'hover:scale-105', 'active:scale-95');
+        spinBtnText.textContent = 'SPIN THE WHEEL';
+        spinStatusMsg.textContent = 'Ready to spin!';
+      } else if (hasSpun) {
+        btnSpinWheel.disabled = true;
+        btnSpinWheel.classList.add('bg-slate-400', 'cursor-not-allowed', 'scale-95', 'opacity-80');
+        btnSpinWheel.classList.remove('bg-[#00508C]', 'hover:bg-[#003e6d]', 'hover:scale-105', 'active:scale-95');
+        spinBtnText.textContent = 'SPIN COMPLETED';
+        spinStatusMsg.textContent = 'Spin completed for this attendee. Register next attendee for another spin.';
+      }
+
       renderInventory();
       drawWheel(rotationAngle);
     }
@@ -1227,6 +1243,7 @@
       btnBackToForm.classList.add('hidden');
 
       if (clearForm) {
+        hasSpun = false;
         registrationForm.reset();
         selectCategory.innerHTML = '<option value="">Select a brand first...</option>';
         selectCategory.disabled = true;
@@ -1269,6 +1286,7 @@
       // Fetch live inventory counts from APPS_SCRIPT_URL
       await fetchLiveInventory();
 
+      hasSpun = false;
       btnSubmitForm.disabled = false;
       submitBtnText.textContent = 'Proceed to Lucky Wheel';
       showWheelView();
