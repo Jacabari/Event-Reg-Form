@@ -1,0 +1,53 @@
+{
+  "id": "my-event-2027",
+  "name": "My Event 2027",
+  "pageTitle": "My Event 2027 | Register and Win!",
+  "headerTitle": "My Event 2027 | Register and Win!",
+  "brandColor": "#7C3AED",
+  "logoUrl": "",
+  "scriptUrl": "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE",
+
+  "form": {
+    "title": "Visitor Registration",
+    "stepLabel": "Step 1 of 2",
+    "submitLabel": "Proceed to Lucky Wheel",
+    "dedupeField": "email",
+    "summary": {
+      "titleField": "fullName",
+      "subtitleField": "company",
+      "detailFields": ["email", "interest"]
+    },
+    "consent": {
+      "enabled": true,
+      "text": "I agree to have my details collected and used for this promotion."
+    },
+    "fields": [
+      { "id": "fullName", "label": "Full Name", "type": "text", "required": true, "placeholder": "e.g. Alex Morgan", "icon": "user" },
+      { "id": "company", "label": "Company", "type": "text", "required": false, "placeholder": "e.g. Vertex Solutions Inc.", "icon": "building" },
+      { "id": "email", "label": "Email Address", "type": "email", "required": true, "placeholder": "name@company.com", "icon": "mail" },
+      { "id": "phone", "label": "Mobile Number", "type": "tel", "required": true, "placeholder": "+63 917 123 4567", "icon": "phone" },
+      { "id": "role", "label": "Job Role", "type": "select", "required": false, "options": ["Owner / Executive", "Manager", "Engineer", "Procurement", "Other"] },
+      { "id": "interest", "label": "Interested In", "type": "checkboxes", "required": true, "options": ["Product A", "Product B", "Services"] },
+      { "id": "contactPref", "label": "Preferred Contact", "type": "radio", "required": false, "options": ["Email", "Phone", "No follow-up"] },
+      { "id": "notes", "label": "Notes", "type": "textarea", "required": false, "placeholder": "Anything else?", "icon": "tag" }
+    ]
+  },
+
+  "prizes": [
+    { "id": "tote", "name": "Tote Bag", "stock": 100, "weight": 3, "color": "#7C3AED", "icon": "👜", "description": "Canvas event tote bag" },
+    { "id": "mug", "name": "Mug", "stock": 60, "weight": 2, "color": "#2563EB", "icon": "☕", "description": "Branded ceramic mug" },
+    { "id": "powerbank", "name": "Power Bank", "stock": 10, "weight": 0.5, "grand": true, "color": "#D97706", "icon": "🔋", "description": "10,000 mAh power bank" },
+    { "id": "no-prize", "name": "No Prize", "noPrize": true, "weight": 2, "color": "#64748B", "icon": "🙂", "description": "Thanks for playing!" }
+  ],
+
+  "ui": {
+    "showInventory": false,
+    "showOdds": false,
+    "noPrizeMessage": "Thanks for playing! Better luck next time."
+  },
+
+  "behavior": {
+    "autoResetSeconds": 45,
+    "sound": true
+  }
+}

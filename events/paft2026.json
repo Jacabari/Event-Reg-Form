@@ -1,0 +1,51 @@
+{
+  "id": "paft2026",
+  "name": "PAFT 2026",
+  "pageTitle": "PAFT 2026 | GRB Booth | Register and Win!",
+  "headerTitle": "PAFT 2026 | GRB Booth | Register and Win!",
+  "brandColor": "#00508C",
+  "logoUrl": "",
+  "scriptUrl": "https://script.google.com/macros/s/AKfycbzb5gLSQ5zCdS9-Jm2OxF5qzhhdkdDTGEWpS_ZWVeetqvFLESNPWXDDEJPspHlegGvJRQ/exec",
+
+  "form": {
+    "title": "Attendee Registration",
+    "stepLabel": "Step 1 of 2",
+    "submitLabel": "Proceed to Lucky Wheel",
+    "dedupeField": "email",
+    "summary": {
+      "titleField": "fullName",
+      "subtitleField": "companyName",
+      "detailFields": ["email", "productInterest"]
+    },
+    "consent": {
+      "enabled": true,
+      "text": "I agree to have my details collected and used for this promotion and for follow-up about the products I am interested in."
+    },
+    "fields": [
+      { "id": "fullName", "label": "Full Name", "type": "text", "required": true, "placeholder": "e.g. Alex Morgan", "icon": "user" },
+      { "id": "companyName", "label": "Company Name", "type": "text", "required": true, "placeholder": "e.g. Vertex Solutions Inc.", "icon": "building" },
+      { "id": "email", "label": "Email Address", "type": "email", "required": true, "placeholder": "alex.morgan@vertexsolutions.io", "icon": "mail" },
+      { "id": "contactNumber", "label": "Contact Number", "type": "tel", "required": true, "placeholder": "+63 917 123 4567", "icon": "phone" },
+      { "id": "productInterest", "label": "Product Interest", "type": "textarea", "required": true, "placeholder": "e.g. Cloud Solutions, AI Automation, Food Processing Equipment...", "icon": "tag" }
+    ]
+  },
+
+  "prizes": [
+    { "id": "sticker", "name": "Sticker", "stock": 50, "weight": 1, "color": "#00508C", "icon": "✨", "description": "Waterproof vinyl event sticker pack" },
+    { "id": "keychain", "name": "Key Chain", "stock": 50, "weight": 1, "color": "#0284C7", "icon": "🔑", "description": "Custom metal & enamel branded keychain" },
+    { "id": "pen", "name": "Pen", "stock": 50, "weight": 1, "color": "#0D9488", "icon": "✒️", "description": "Ergonomic smooth gel rollerball pen" },
+    { "id": "notebook", "name": "Notebook", "stock": 50, "weight": 1, "color": "#2563EB", "icon": "📓", "description": "Hardcover debossed executive notebook" },
+    { "id": "neck-pillow", "name": "Neck Pillow", "stock": 50, "weight": 0.25, "grand": true, "color": "#D97706", "icon": "🌟", "description": "Deluxe ergonomic memory foam travel neck pillow" }
+  ],
+
+  "ui": {
+    "showInventory": true,
+    "showOdds": true,
+    "noPrizeMessage": "Thanks for playing! Better luck next time."
+  },
+
+  "behavior": {
+    "autoResetSeconds": 45,
+    "sound": true
+  }
+}
