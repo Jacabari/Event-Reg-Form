@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register and Win!</title>
+  <!-- Compiled Tailwind CSS (rebuild with: cd tools && npm run build). Brand colours come from CSS variables set from the event config. -->
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root {
+      --brand-rgb: 0 80 140;
+      --brand-dark-rgb: 0 62 109;
+      --brand-darker-rgb: 0 43 76;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col selection:bg-brand selection:text-white font-sans antialiased">
+
+  <!-- Confetti Canvas -->
+  <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full" aria-hidden="true"></canvas>
+
+  <!-- Header -->
+  <header id="mainHeader" class="bg-brand text-white shadow-md border-b border-brand-dark">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <img id="headerLogo" alt="" class="h-8 w-auto hidden" />
+        <h1 id="headerTitle" class="text-base sm:text-xl font-bold tracking-tight text-white truncate">Register and Win!</h1>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <span id="connStatus" class="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold text-white/80" title="Server connection">
+          <span id="connDot" class="w-2 h-2 rounded-full bg-slate-300"></span>
+          <span id="connText">Connecting…</span>
+        </span>
+
+        <button id="btnFullscreen" type="button" title="Toggle full screen" aria-label="Toggle full screen"
+          class="p-1.5 rounded-lg text-white hover:bg-white/15 transition-colors cursor-pointer border border-white/10 flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>
+        </button>
+
+        <button id="btnAdmin" type="button" title="Admin" aria-label="Admin"
+          class="p-1.5 rounded-lg text-white hover:bg-white/15 transition-colors cursor-pointer border border-white/10 flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </button>
+
+        <button id="btnToggleSound" type="button" title="Toggle sound" aria-label="Toggle sound"
+          class="p-1.5 rounded-lg text-white hover:bg-white/15 transition-colors cursor-pointer border border-white/10 flex items-center justify-center">
+          <svg id="iconVolumeOn" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/>
+          </svg>
+          <svg id="iconVolumeOff" class="w-4 h-4 text-rose-300 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div id="demoBanner" class="hidden bg-amber-100 text-amber-900 text-xs font-semibold text-center py-1.5 border-b border-amber-200">
+    DEMO MODE: nothing is sent to Google Sheets. Admin PIN: 1234.
+  </div>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col items-center justify-center">
+
+    <!-- 0. LOADING -->
+    <div id="viewLoading" class="text-slate-500 text-sm font-semibold" role="status">Loading event…</div>
+
+    <!-- 0b. CONFIG ERROR -->
+    <div id="viewError" class="hidden w-full max-w-lg bg-white rounded-2xl shadow-xl border border-rose-200 p-8 text-center" role="alert">
+      <h2 class="text-lg font-black text-rose-700 mb-2">This event can’t be loaded</h2>
+      <p id="errorText" class="text-sm text-slate-600"></p>
+    </div>
+
+    <!-- 1. REGISTRATION FORM -->
+    <div id="viewForm" class="hidden w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden">
+      <div class="bg-brand p-6 text-white flex items-center justify-between gap-3">
+        <div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/15 text-white border border-white/20 mb-2">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span id="formStepLabel">Step 1 of 2</span>
+          </span>
+          <h2 id="formTitle" class="text-xl sm:text-2xl font-black">Registration</h2>
+        </div>
+
+        <button type="button" id="btnFillSample"
+          class="hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/15 hover:bg-white/25 text-white border border-white/20 transition-all cursor-pointer shadow-sm">
+          Fill Sample
+        </button>
+      </div>
+
+      <form id="registrationForm" class="p-6 sm:p-8 space-y-5" novalidate>
+        <div id="formAlert" class="hidden p-3 rounded-xl border text-sm font-semibold" role="alert"></div>
+
+        <div id="formFields" class="grid grid-cols-1 sm:grid-cols-2 gap-5"></div>
+
+        <div id="consentWrap" class="hidden space-y-1.5">
+          <label class="flex items-start gap-3 text-sm text-slate-700 cursor-pointer">
+            <input id="inputConsent" type="checkbox" class="mt-0.5 w-4 h-4 rounded border-slate-300 accent-[rgb(var(--brand-rgb))]" />
+            <span id="consentText"></span>
+          </label>
+          <p id="errConsent" class="text-xs text-rose-600 font-medium pl-1 hidden"></p>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex justify-end">
+          <button type="submit" id="btnSubmitForm"
+            class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold text-white bg-brand hover:bg-brand-dark shadow-lg shadow-brand/25 transition-all cursor-pointer disabled:opacity-70 disabled:cursor-wait">
+            <span id="submitBtnText">Proceed to Lucky Wheel</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 2. WHEEL VIEW -->
+    <div id="viewWheel" class="w-full space-y-6 hidden">
+      <div class="bg-white rounded-2xl p-4 shadow-md border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center font-bold shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          </div>
+          <div class="min-w-0">
+            <h3 class="text-base font-extrabold text-slate-800 truncate">
+              <span id="displayTitle">Registered Attendee</span>
+              <span class="text-sm font-normal text-slate-500" id="displaySubtitle"></span>
+            </h3>
+            <p class="text-xs text-slate-500 truncate" id="displayDetail"></p>
+          </div>
+        </div>
+
+        <button id="btnRegisterNext" type="button"
+          class="text-xs font-bold text-brand bg-brand/10 hover:bg-brand/20 px-3.5 py-2 rounded-xl transition-all cursor-pointer shrink-0">
+          Register Next Attendee
+        </button>
+      </div>
+
+      <div id="wheelGrid" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Wheel -->
+        <div id="wheelCol" class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200/80 flex flex-col items-center justify-center min-h-[500px]">
+          <div class="relative flex items-center justify-center my-2 p-2">
+            <div id="wheelPointer" class="absolute -top-3 z-30 pointer-events-none transition-transform duration-75 origin-top"
+              style="transform: translateX(-50%) rotate(0deg); left: 50%;" aria-hidden="true">
+              <svg width="36" height="46" viewBox="0 0 36 46" fill="none" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-lg">
+                <path d="M18 46 L3 12 C1 7 5 1 11 1 L25 1 C31 1 35 7 33 12 Z" fill="#DC2626" stroke="#FFFFFF" stroke-width="2.5"/>
+                <circle cx="18" cy="14" r="5.5" fill="#FEF08A" stroke="#FFFFFF" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <canvas id="rouletteCanvas" role="img" aria-label="Prize wheel"
+              class="w-[310px] h-[310px] sm:w-[390px] sm:h-[390px] md:w-[410px] md:h-[410px] rounded-full select-none"></canvas>
+          </div>
+
+          <div class="mt-4 flex flex-col items-center gap-2 w-full max-w-sm">
+            <button id="btnSpinWheel" type="button"
+              class="w-full py-4 px-8 rounded-2xl text-lg font-black tracking-wider uppercase flex items-center justify-center gap-3 bg-brand hover:bg-brand-dark text-white hover:scale-105 active:scale-95 shadow-xl hover:shadow-2xl hover:shadow-brand/40 transition-all cursor-pointer disabled:bg-slate-400 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:active:scale-100 disabled:shadow-none">
+              <svg class="w-6 h-6 fill-white text-white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <span id="spinBtnText">SPIN THE WHEEL</span>
+            </button>
+
+            <div id="allOutOfStockNotice" class="hidden w-full p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm font-semibold items-center justify-center gap-2">
+              <span>All prizes are out of stock!</span>
+            </div>
+
+            <p id="spinStatusMsg" class="text-xs text-slate-500 font-medium text-center" aria-live="polite">Ready to spin!</p>
+          </div>
+        </div>
+
+        <!-- Inventory -->
+        <div id="inventoryCol" class="lg:col-span-5 bg-white rounded-3xl p-6 shadow-xl border border-slate-200/80 flex flex-col">
+          <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-800">Prize Inventory</h3>
+                <p class="text-xs text-slate-500">Total Stock: <strong id="totalStockCount" class="text-brand">0</strong> units</p>
+              </div>
+            </div>
+          </div>
+          <div id="inventoryList" class="space-y-3 flex-1"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 3. WINNER MODAL -->
+  <div id="winnerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden"
+    role="dialog" aria-modal="true" aria-labelledby="modalHeading">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 sm:p-8 text-center relative overflow-hidden">
+      <div class="absolute top-4 right-4">
+        <button id="btnCloseModal" type="button" aria-label="Close" class="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="flex flex-col items-center">
+        <div id="modalPrizeIconBox" class="w-20 h-20 rounded-3xl flex items-center justify-center text-4xl shadow-xl mb-3 bg-brand text-white">✨</div>
+
+        <span id="modalBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 mb-2">
+          Lucky Winner!
+        </span>
+
+        <h2 id="modalHeading" class="text-2xl font-black text-slate-900">Congratulations!</h2>
+        <p id="modalWinnerLine" class="text-sm font-medium text-slate-600 mt-1">
+          <strong id="modalWinnerName" class="text-brand">Registrant</strong> won:
+        </p>
+
+        <div id="modalPrizeCard" class="w-full my-4 p-4 rounded-2xl border-2 flex flex-col items-center gap-1 border-brand bg-brand/5">
+          <span id="modalPrizeName" class="text-2xl font-extrabold text-brand">Prize Name</span>
+          <p id="modalPrizeDesc" class="text-xs text-slate-600"></p>
+          <span id="modalStockLine" class="text-[11px] font-semibold text-slate-500 mt-1">
+            Remaining Stock: <strong id="modalPrizeStock" class="text-slate-800">0</strong> units
+          </span>
+        </div>
+
+        <p id="modalSyncStatus" class="text-[11px] text-amber-700 font-semibold hidden mb-3">
+          Result will be saved when the connection returns.
+        </p>
+
+        <button id="btnModalNextAttendee" type="button"
+          class="w-full py-3 px-4 rounded-xl text-sm font-bold text-white bg-brand hover:bg-brand-dark shadow-lg shadow-brand/25 transition-all cursor-pointer">
+          Next Attendee
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. ADMIN MODAL -->
+  <div id="adminModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden"
+    role="dialog" aria-modal="true" aria-labelledby="adminHeading">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto">
+      <button id="btnAdminClose" type="button" aria-label="Close admin" class="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <h2 id="adminHeading" class="text-xl font-black text-slate-900 mb-4">Admin</h2>
+
+      <form id="adminLogin" class="space-y-3">
+        <label for="adminPin" class="block text-xs font-bold uppercase tracking-wider text-slate-700">Admin PIN</label>
+        <input id="adminPin" type="password" inputmode="numeric" autocomplete="off"
+          class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-brand focus:ring-2 focus:ring-brand/20 text-sm focus:outline-none" />
+        <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-bold text-white bg-brand hover:bg-brand-dark cursor-pointer disabled:opacity-70">Unlock</button>
+      </form>
+
+      <div id="adminPanel" class="hidden space-y-4">
+        <div id="adminCounts" class="grid grid-cols-2 gap-3 text-center"></div>
+        <div id="adminInventory" class="text-sm"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button id="btnAdminRefresh" type="button" class="py-2.5 rounded-xl text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer">Refresh</button>
+          <button id="btnAdminExport" type="button" class="py-2.5 rounded-xl text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer">Export entries (CSV)</button>
+          <button id="btnAdminResetStock" type="button" class="py-2.5 rounded-xl text-sm font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 cursor-pointer">Reset prize stock</button>
+          <button id="btnAdminResetAll" type="button" class="py-2.5 rounded-xl text-sm font-bold text-rose-800 bg-rose-100 hover:bg-rose-200 cursor-pointer">Reset stock + archive entries</button>
+        </div>
+        <p class="text-[11px] text-slate-500">“Archive” renames the Entries tab in the sheet. Nothing is deleted.</p>
+      </div>
+
+      <p id="adminMsg" class="mt-3 text-xs font-semibold hidden" role="status"></p>
+    </div>
+  </div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    // ------------------------------------------------------------ utilities
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    const params = new URLSearchParams(location.search);
+    const DEMO = params.get('demo') === '1';
+    const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    class UserError extends Error {}
+
+    const ICONS = {
+      user: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+      building: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
+      mail: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+      phone: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z',
+      tag: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'
+    };
+    const FALLBACK_COLORS = ['#00508C', '#0284C7', '#0D9488', '#2563EB', '#D97706', '#7C3AED', '#DB2777', '#059669'];
+    const INPUT_CLS = 'w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 focus:border-brand focus:ring-2 focus:ring-brand/20 text-sm font-medium transition-all bg-slate-50/50 focus:bg-white focus:outline-none';
+    const INPUT_NOICON_CLS = INPUT_CLS.replace('pl-10', 'pl-4');
+
+    // ------------------------------------------------------------ state
+    let config = null;
+    let prizes = [];            // merged: config + latest server stock/weight
+    let pendingInventory = null; // server inventory after registration, shown only after the spin ends
+    let attendee = null;        // { values, entryId, prize:{id,name}, spun }
+    let brandHex = '#00508C';
+    let brandDarkHex = '#003e6d';
+    let brandDarkerHex = '#002B4C';
+    let soundEnabled = true;
+    let isSpinning = false;
+    let rotationAngle = 0;
+    let lastTickSegment = -1;
+    let adminPin = '';
+    let lastInventoryRefresh = 0;
+
+    // ------------------------------------------------------------ colour helpers
+    function hexToRgb(hex) {
+      const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+      if (!m) return null;
+      const n = parseInt(m[1], 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    const rgbToHex = ([r, g, b]) => '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+    const shade = (rgb, f) => rgb.map(v => v * f);
+
+    function applyBrand(hex) {
+      const rgb = hexToRgb(hex) || [0, 80, 140];
+      const dark = shade(rgb, 0.78), darker = shade(rgb, 0.55);
+      brandHex = rgbToHex(rgb); brandDarkHex = rgbToHex(dark); brandDarkerHex = rgbToHex(darker);
+      const root = document.documentElement.style;
+      root.setProperty('--brand-rgb', rgb.map(Math.round).join(' '));
+      root.setProperty('--brand-dark-rgb', dark.map(Math.round).join(' '));
+      root.setProperty('--brand-darker-rgb', darker.map(Math.round).join(' '));
+    }
+
+    // ------------------------------------------------------------ config loading
+    async function fetchJson(url) {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.status === 404) throw new UserError('not-found');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }
+
+    async function loadConfig() {
+      if (location.protocol === 'file:') {
+        throw new UserError('This page was opened straight from a file, and browsers block it from reading the event settings that way. Open it through a web server instead (for example run "python3 -m http.server 5173" inside the v2-current folder, then visit http://localhost:5173/?event=paft2026&demo=1), or use the deployed site.');
+      }
+      let id = params.get('event');
+      if (!id) {
+        let idx;
+        try { idx = await fetchJson('events/index.json'); }
+        catch (e) { throw new UserError('No event was specified. Add ?event=your-event-id to the address.'); }
+        id = idx.default;
+      }
+      if (!/^[a-z0-9_-]{1,40}$/i.test(id || '')) throw new UserError('That event id is not valid.');
+
+      let cfg;
+      try { cfg = await fetchJson(`events/${id}.json`); }
+      catch (e) {
+        if (e instanceof UserError) throw new UserError(`Event “${id}” was not found.`);
+        throw new UserError('The event settings could not be loaded. If you opened this file directly from disk, serve it over http instead.');
+      }
+      return normalizeConfig(cfg, id);
+    }
+
+    function normalizeConfig(raw, id) {
+      const cfg = raw || {};
+      cfg.id = String(cfg.id || id);
+      if (!/^[a-z0-9_-]{1,40}$/i.test(cfg.id)) throw new UserError('The event id in the settings is not valid.');
+      cfg.name = cfg.name || cfg.id;
+      cfg.headerTitle = cfg.headerTitle || cfg.name;
+      cfg.pageTitle = cfg.pageTitle || cfg.headerTitle;
+      cfg.form = cfg.form || {};
+      cfg.ui = Object.assign({ showInventory: true, showOdds: false, noPrizeMessage: 'Thanks for playing! Better luck next time.' }, cfg.ui);
+      cfg.behavior = Object.assign({ autoResetSeconds: 0, sound: true }, cfg.behavior);
+
+      const fields = Array.isArray(cfg.form.fields) ? cfg.form.fields : [];
+      if (!fields.length) throw new UserError('The event settings have no form fields.');
+      const seen = new Set();
+      fields.forEach(f => {
+        if (!f.id || !/^[A-Za-z0-9_-]+$/.test(f.id) || seen.has(f.id)) throw new UserError(`Form field ids must be unique and simple (problem: “${f.id}”).`);
+        seen.add(f.id);
+        f.type = f.type || 'text';
+        f.label = f.label || f.id;
+        if (['select', 'radio', 'checkboxes'].includes(f.type) && !(f.options || []).length) throw new UserError(`Field “${f.label}” needs options.`);
+      });
+      cfg.form.fields = fields;
+      cfg.form.dedupeField = cfg.form.dedupeField
+        || (fields.find(f => f.type === 'email') || fields.find(f => f.type === 'tel') || fields[0]).id;
+      if (!seen.has(cfg.form.dedupeField)) throw new UserError('dedupeField does not match any form field.');
+      const sum = cfg.form.summary = cfg.form.summary || {};
+      sum.titleField = sum.titleField || fields[0].id;
+      sum.detailFields = sum.detailFields || [];
+      cfg.form.consent = Object.assign({ enabled: false, text: '' }, cfg.form.consent);
+
+      const rawPrizes = Array.isArray(cfg.prizes) ? cfg.prizes : [];
+      if (rawPrizes.length < 2) throw new UserError('The event needs at least two prizes (or one prize and a “no prize” segment).');
+      const pIds = new Set();
+      cfg.prizes = rawPrizes.map((p, i) => {
+        if (!p.id || pIds.has(p.id)) throw new UserError(`Prize ids must be unique (problem: “${p.id}”).`);
+        pIds.add(p.id);
+        const noPrize = !!p.noPrize;
+        const stock = noPrize ? -1 : Math.max(0, Math.floor(Number(p.stock) || 0));
+        return {
+          id: String(p.id), name: p.name || p.id, icon: p.icon || '', description: p.description || '',
+          color: hexToRgb(p.color) ? p.color : FALLBACK_COLORS[i % FALLBACK_COLORS.length],
+          textColor: '#FFFFFF',
+          weight: p.weight === undefined ? 1 : Math.max(0, Number(p.weight) || 0),
+          grand: !!p.grand, noPrize, stock, initialStock: stock
+        };
+      });
+
+      if (!DEMO && !/^https:\/\/script\.google\.com\//.test(cfg.scriptUrl || '')) {
+        throw new UserError('This event has no backend yet. Put the Apps Script web app URL in its settings file (scriptUrl), or add ?demo=1 to try it without a backend.');
+      }
+      return cfg;
+    }
+
+    // ------------------------------------------------------------ backend client
+    const conn = { ok: null };
+    function setConn(ok) {
+      conn.ok = ok;
+      $('connDot').className = 'w-2 h-2 rounded-full ' + (ok ? 'bg-emerald-400' : 'bg-amber-400');
+      $('connText').textContent = DEMO ? 'Demo' : (ok ? 'Online' : 'Offline');
+    }
+
+    async function api(action, payload = {}, timeoutMs = 20000) {
+      if (DEMO) { const r = await Mock.handle(action, payload); setConn(true); return r; }
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const res = await fetch(config.scriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids a CORS preflight on Apps Script
+          body: JSON.stringify({ ...payload, action, event: config.id }),
+          signal: ctrl.signal
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        setConn(true);
+        return data;
+      } catch (e) {
+        setConn(false);
+        throw e;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    // Offline queue: "spun" confirmations are retried until the server has them.
+    const QKEY = 'regwheel:pending-spun';
+    function readQueue() { try { return JSON.parse(localStorage.getItem(QKEY)) || []; } catch { return []; } }
+    function writeQueue(q) { try { localStorage.setItem(QKEY, JSON.stringify(q)); } catch { /* storage unavailable */ } }
+    function queueSpun(entryId) {
+      const q = readQueue();
+      if (!q.some(x => x.entryId === entryId && x.event === config.id)) q.push({ event: config.id, entryId });
+      writeQueue(q);
+    }
+    let flushing = false;
+    async function flushQueue() {
+      if (flushing) return;
+      const q = readQueue().filter(x => x.event === config.id);
+      if (!q.length) { $('modalSyncStatus').classList.add('hidden'); return; }
+      flushing = true;
+      try {
+        for (const item of q) {
+          try {
+            const r = await api('spun', { entryId: item.entryId });
+            if (r.ok || r.error === 'not_found') {
+              writeQueue(readQueue().filter(x => !(x.event === item.event && x.entryId === item.entryId)));
+            }
+          } catch { break; }
+        }
+      } finally { flushing = false; }
+      if (!readQueue().some(x => x.event === config.id)) $('modalSyncStatus').classList.add('hidden');
+    }
+
+    function seedPrizes() {
+      return config.prizes.map(p => ({ id: p.id, name: p.name, stock: p.noPrize ? 0 : p.initialStock, weight: p.weight, noPrize: p.noPrize }));
+    }
+
+    function applyInventory(list) {
+      (list || []).forEach(s => {
+        const p = prizes.find(x => x.id === s.id);
+        if (!p) return;
+        if (typeof s.stock === 'number') p.stock = s.stock;
+        if (typeof s.initialStock === 'number') p.initialStock = s.initialStock;
+        if (typeof s.weight === 'number') p.weight = s.weight;
+      });
+    }
+
+    async function refreshInventory(force = false) {
+      if (!force && Date.now() - lastInventoryRefresh < 5000) return;
+      lastInventoryRefresh = Date.now();
+      try {
+        const r = await api('init', { prizes: seedPrizes() }, 12000);
+        if (r.ok) { applyInventory(r.inventory); renderInventory(); drawWheel(rotationAngle); }
+      } catch { /* the badge shows the connection state */ }
+    }
+
+    // ------------------------------------------------------------ demo (in-browser) backend
+    const Mock = {
+      mem: null,
+      key() { return 'regwheel-demo:' + config.id; },
+      get() {
+        if (this.mem) return this.mem;
+        try { this.mem = JSON.parse(localStorage.getItem(this.key())); } catch { /* ignore */ }
+        return this.mem || (this.mem = { inventory: [], entries: [] });
+      },
+      put() { try { localStorage.setItem(this.key(), JSON.stringify(this.mem)); } catch { /* ignore */ } },
+      pub(s) { return s.inventory.map(({ id, name, stock, initialStock, weight, noPrize }) => ({ id, name, stock, initialStock, weight, noPrize })); },
+      async handle(action, p) {
+        await sleep(250);
+        const s = this.get();
+        if (action === 'init') {
+          (p.prizes || []).forEach(x => {
+            if (s.inventory.some(i => i.id === x.id)) return;
+            const stock = x.noPrize ? -1 : x.stock;
+            s.inventory.push({ id: x.id, name: x.name, stock, initialStock: stock, weight: x.weight, noPrize: !!x.noPrize });
+          });
+          this.put();
+          return { ok: true, inventory: this.pub(s) };
+        }
+        if (action === 'register') {
+          const key = String(p.dedupeKey || '').toLowerCase();
+          const ex = s.entries.find(e => e.key === key);
+          if (ex) {
+            if (ex.spun) return { ok: false, error: 'already_played', prizeName: ex.prize.name, message: 'This person has already registered and played.' };
+            return { ok: true, status: 'resume', entryId: ex.id, prize: ex.prize, inventory: this.pub(s) };
+          }
+          const pool = s.inventory.filter(i => i.weight > 0 && (i.noPrize || i.stock > 0));
+          if (!pool.length) return { ok: false, error: 'out_of_stock', message: 'All prizes have been given out.' };
+          let r = Math.random() * pool.reduce((a, i) => a + i.weight, 0), pick = pool[pool.length - 1];
+          for (const i of pool) { if (r < i.weight) { pick = i; break; } r -= i.weight; }
+          if (!pick.noPrize) pick.stock -= 1;
+          const entry = { id: Math.random().toString(36).slice(2, 10).toUpperCase(), key, fields: p.fields, prize: { id: pick.id, name: pick.name }, spun: false, at: new Date().toISOString() };
+          s.entries.push(entry); this.put();
+          return { ok: true, status: 'new', entryId: entry.id, prize: entry.prize, inventory: this.pub(s) };
+        }
+        if (action === 'spun') {
+          const e = s.entries.find(x => x.id === p.entryId);
+          if (!e) return { ok: false, error: 'not_found' };
+          e.spun = true; this.put(); return { ok: true };
+        }
+        if (action === 'admin') {
+          if (p.pin !== '1234') return { ok: false, error: 'bad_pin', message: 'Incorrect PIN.' };
+          const counts = () => ({ entries: s.entries.length, spun: s.entries.filter(e => e.spun).length });
+          if (p.op === 'status') return { ok: true, inventory: this.pub(s), counts: counts() };
+          if (p.op === 'export') {
+            const headers = ['Timestamp', 'EntryId', ...config.form.fields.map(f => f.label), 'Prize', 'Spun'];
+            const rows = s.entries.map(e => [e.at, e.id, ...config.form.fields.map(f => (e.fields.find(x => x.id === f.id) || {}).value || ''), e.prize.name, e.spun ? 'Yes' : 'No']);
+            return { ok: true, headers, rows };
+          }
+          if (p.op === 'reset') {
+            s.inventory.forEach(i => { if (!i.noPrize) i.stock = i.initialStock; });
+            if (p.clearEntries) s.entries = [];
+            this.put();
+            return { ok: true, inventory: this.pub(s), counts: counts() };
+          }
+        }
+        return { ok: false, error: 'bad_action', message: 'Unknown action.' };
+      }
+    };
+
+    // ------------------------------------------------------------ sound
+    class SoundEngine {
+      constructor() { this.ctx = null; }
+      init() {
+        if (!this.ctx) { const A = window.AudioContext || window.webkitAudioContext; if (A) this.ctx = new A(); }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      }
+      playTick(speed = 1) {
+        if (!soundEnabled) return;
+        try {
+          this.init(); if (!this.ctx) return;
+          const t = this.ctx.currentTime, osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(580 + Math.min(speed * 100, 500), t);
+          osc.frequency.exponentialRampToValueAtTime(160, t + 0.035);
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(); osc.stop(t + 0.04);
+        } catch { /* audio is optional */ }
+      }
+      playWin() {
+        if (!soundEnabled) return;
+        try {
+          this.init(); if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+            const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.1);
+            gain.gain.setValueAtTime(0.22, now + i * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.45);
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.1); osc.stop(now + i * 0.1 + 0.5);
+          });
+        } catch { /* audio is optional */ }
+      }
+      playSoft() {
+        if (!soundEnabled) return;
+        try {
+          this.init(); if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          [392, 329.63].forEach((freq, i) => {
+            const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.15);
+            gain.gain.setValueAtTime(0.15, now + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.4);
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.15); osc.stop(now + i * 0.15 + 0.45);
+          });
+        } catch { /* audio is optional */ }
+      }
+    }
+    const audio = new SoundEngine();
+
+    // ------------------------------------------------------------ DOM refs
+    const viewLoading = $('viewLoading'), viewError = $('viewError'), viewForm = $('viewForm'), viewWheel = $('viewWheel');
+    const registrationForm = $('registrationForm'), formFields = $('formFields'), formAlert = $('formAlert');
+    const btnSubmitForm = $('btnSubmitForm'), submitBtnText = $('submitBtnText');
+    const rouletteCanvas = $('rouletteCanvas'), wheelPointer = $('wheelPointer');
+    const btnSpinWheel = $('btnSpinWheel'), spinBtnText = $('spinBtnText'), spinStatusMsg = $('spinStatusMsg');
+    const allOutOfStockNotice = $('allOutOfStockNotice'), inventoryList = $('inventoryList');
+    const winnerModal = $('winnerModal'), adminModal = $('adminModal');
+
+    function showOnly(view) {
+      [viewLoading, viewError, viewForm, viewWheel].forEach(v => v.classList.toggle('hidden', v !== view));
+    }
+
+    // ------------------------------------------------------------ form generation
+    function iconHtml(name, topAligned) {
+      const d = ICONS[name];
+      if (!d) return '';
+      return `<div class="absolute ${topAligned ? 'top-3' : 'inset-y-0'} left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${d}"/></svg></div>`;
+    }
+
+    function fieldHtml(f) {
+      const req = f.required ? ' <span class="text-rose-500" aria-hidden="true">*</span>' : '';
+      const wide = f.width === 'full' || ['textarea', 'checkboxes', 'radio'].includes(f.type);
+      const labelCls = 'block text-xs font-bold uppercase tracking-wider text-slate-700';
+      const errId = 'err_' + f.id;
+      let control;
+      const cls = f.icon ? INPUT_CLS : INPUT_NOICON_CLS;
+      const common = `id="f_${esc(f.id)}" name="${esc(f.id)}" aria-describedby="${errId}" ${f.required ? 'aria-required="true"' : ''}`;
+
+      if (f.type === 'textarea') {
+        control = `<div class="relative">${iconHtml(f.icon, true)}<textarea ${common} rows="${f.rows || 3}" maxlength="${f.maxLength || 1000}" placeholder="${esc(f.placeholder || '')}" class="${cls} resize-none"></textarea></div>`;
+      } else if (f.type === 'select') {
+        control = `<div class="relative">${iconHtml(f.icon)}<select ${common} class="${cls}"><option value="">${esc(f.placeholder || 'Select…')}</option>${f.options.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select></div>`;
+      } else if (f.type === 'radio' || f.type === 'checkboxes') {
+        const kind = f.type === 'radio' ? 'radio' : 'checkbox';
+        control = `<div id="f_${esc(f.id)}" role="${kind === 'radio' ? 'radiogroup' : 'group'}" aria-labelledby="lbl_${esc(f.id)}" aria-describedby="${errId}" class="flex flex-wrap gap-x-5 gap-y-2 pt-1">
+          ${f.options.map((o, i) => `<label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="${kind}" name="${esc(f.id)}" value="${esc(o)}" class="w-4 h-4 accent-[rgb(var(--brand-rgb))]" /> ${esc(o)}</label>`).join('')}</div>`;
+      } else {
+        const type = ['email', 'tel', 'number'].includes(f.type) ? f.type : 'text';
+        control = `<div class="relative">${iconHtml(f.icon)}<input ${common} type="${type}" maxlength="${f.maxLength || 300}" placeholder="${esc(f.placeholder || '')}" ${type === 'email' ? 'autocomplete="off" autocapitalize="none"' : ''} class="${cls}" /></div>`;
+      }
+
+      return `<div class="${wide ? 'sm:col-span-2 ' : ''}space-y-1.5" data-field="${esc(f.id)}">
+        <label id="lbl_${esc(f.id)}" ${['radio', 'checkboxes'].includes(f.type) ? '' : `for="f_${esc(f.id)}"`} class="${labelCls}">${esc(f.label)}${req}</label>
+        ${control}
+        <p id="${errId}" class="text-xs text-rose-600 font-medium pl-1 hidden" role="alert"></p>
+      </div>`;
+    }
+
+    function buildForm() {
+      $('formTitle').textContent = config.form.title || 'Registration';
+      $('formStepLabel').textContent = config.form.stepLabel || 'Step 1 of 2';
+      submitBtnText.textContent = config.form.submitLabel || 'Proceed to Lucky Wheel';
+      formFields.innerHTML = config.form.fields.map(fieldHtml).join('');
+      const c = config.form.consent;
+      $('consentWrap').classList.toggle('hidden', !c.enabled);
+      $('consentText').textContent = c.text;
+      $('btnFillSample').classList.toggle('hidden', !DEMO);
+    }
+
+    const fieldById = id => config.form.fields.find(f => f.id === id);
+
+    function getValue(f) {
+      const el = $('f_' + f.id);
+      if (f.type === 'checkboxes') return [...el.querySelectorAll('input:checked')].map(i => i.value);
+      if (f.type === 'radio') { const c = el.querySelector('input:checked'); return c ? c.value : ''; }
+      return el.value.trim();
+    }
+    const valueText = v => Array.isArray(v) ? v.join(', ') : v;
+
+    function setError(id, msg) {
+      const err = $('err_' + id);
+      if (!err) return;
+      err.textContent = msg || '';
+      err.classList.toggle('hidden', !msg);
+      const el = $('f_' + id);
+      if (el && ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) {
+        el.classList.toggle('border-rose-400', !!msg);
+        el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+      }
+    }
+
+    function validateForm() {
+      let firstBad = null;
+      const fail = (id, msg) => { setError(id, msg); firstBad = firstBad || $('f_' + id); };
+      config.form.fields.forEach(f => {
+        const v = getValue(f), text = valueText(v);
+        setError(f.id, '');
+        if (f.required && (Array.isArray(v) ? !v.length : !v)) return fail(f.id, `${f.label} is required.`);
+        if (!text) return;
+        if (f.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) return fail(f.id, 'Please enter a valid email address.');
+        if (f.type === 'tel' && text.replace(/\D/g, '').length < 7) return fail(f.id, 'Please enter a valid contact number.');
+        if (f.pattern && !new RegExp(f.pattern).test(text)) return fail(f.id, f.patternMessage || `${f.label} is not in the expected format.`);
+      });
+      const c = config.form.consent;
+      const errC = $('errConsent');
+      errC.classList.add('hidden');
+      if (c.enabled && !$('inputConsent').checked) {
+        errC.textContent = 'Please accept to continue.';
+        errC.classList.remove('hidden');
+        firstBad = firstBad || $('inputConsent');
+      }
+      if (firstBad) { (firstBad.tagName === 'DIV' ? firstBad.querySelector('input') : firstBad).focus(); }
+      return !firstBad;
+    }
+
+    function normalizeKey(f, v) {
+      const t = String(valueText(v) || '').trim().toLowerCase();
+      if (f.type === 'tel') return t.replace(/\D/g, '');
+      return t.replace(/\s+/g, ' ');
+    }
+
+    function formDirty() {
+      return config.form.fields.some(f => { const v = getValue(f); return Array.isArray(v) ? v.length : !!v; });
+    }
+
+    function clearForm() {
+      registrationForm.reset();
+      config.form.fields.forEach(f => setError(f.id, ''));
+      $('errConsent').classList.add('hidden');
+      showAlert('');
+    }
+
+    function showAlert(msg, kind = 'error') {
+      formAlert.textContent = msg || '';
+      formAlert.classList.toggle('hidden', !msg);
+      formAlert.className = 'p-3 rounded-xl border text-sm font-semibold ' + (msg ? '' : 'hidden ') +
+        (kind === 'info' ? 'bg-sky-50 border-sky-200 text-sky-900' : 'bg-rose-50 border-rose-200 text-rose-800');
+    }
+
+    // ------------------------------------------------------------ inventory + odds
+    const isEligible = p => p.weight > 0 && (p.noPrize || p.stock > 0);
+    const totalWeight = () => prizes.reduce((a, p) => a + (isEligible(p) ? p.weight : 0), 0);
+    const hasRealPrizeLeft = () => prizes.some(p => !p.noPrize && p.weight > 0 && p.stock > 0);
+
+    function renderInventory() {
+      const showInv = config.ui.showInventory;
+      $('inventoryCol').classList.toggle('hidden', !showInv);
+      $('wheelCol').classList.toggle('lg:col-span-7', showInv);
+      $('wheelCol').classList.toggle('lg:col-span-12', !showInv);
+
+      const real = prizes.filter(p => !p.noPrize);
+      $('totalStockCount').textContent = real.reduce((a, p) => a + p.stock, 0);
+
+      const tw = totalWeight();
+      const canSpin = tw > 0 && (hasRealPrizeLeft() || prizes.some(p => p.noPrize && p.weight > 0));
+      const showSpin = attendee && !attendee.spun ? true : canSpin;
+      allOutOfStockNotice.classList.toggle('hidden', showSpin);
+      allOutOfStockNotice.classList.toggle('flex', !showSpin);
+      btnSpinWheel.classList.toggle('hidden', !showSpin);
+
+      if (!showInv) return;
+      inventoryList.innerHTML = prizes.map(item => {
+        const unlimited = item.noPrize;
+        const depleted = !unlimited && item.stock <= 0;
+        const pct = unlimited ? 100 : Math.max(0, Math.min(100, Math.round((item.stock / Math.max(1, item.initialStock)) * 100)));
+        const odds = (tw > 0 && isEligible(item)) ? ((item.weight / tw) * 100).toFixed(1) : '0.0';
+        return `
+          <div class="p-3 rounded-xl border transition-all ${depleted ? 'bg-slate-100/70 border-slate-200 opacity-60' : 'bg-slate-50/70 border-slate-200/80'}">
+            <div class="flex items-center justify-between mb-1.5 gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-3 h-3 rounded-full shrink-0" style="background-color: ${esc(item.color)}"></span>
+                <span class="text-sm font-bold text-slate-800 truncate">${esc(item.icon)} ${esc(item.name)}</span>
+              </div>
+              <span class="text-xs font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${depleted ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-brand/10 text-brand border-brand/20'}">
+                ${unlimited ? '∞' : depleted ? 'Out of Stock' : `${item.stock} / ${item.initialStock}`}
+              </span>
+            </div>
+            <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mb-1.5">
+              <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${depleted ? '#94A3B8' : esc(item.color)};"></div>
+            </div>
+            <div class="flex items-center justify-between gap-2 text-[11px] text-slate-500 font-medium">
+              <span class="flex items-center gap-1 font-semibold text-slate-700">
+                ${config.ui.showOdds ? `<span>Win Odds: <strong class="text-brand">${odds}%</strong></span>` : ''}
+                ${item.grand ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-1 rounded font-bold">Grand Prize</span>' : ''}
+              </span>
+              <span class="truncate max-w-[180px]">${esc(item.description)}</span>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ------------------------------------------------------------ wheel
+    function fitText(ctx, text, maxW) {
+      if (ctx.measureText(text).width <= maxW) return text;
+      let t = text;
+      while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+      return t + '…';
+    }
+
+    function drawWheel(angle) {
+      const ctx = rouletteCanvas.getContext('2d');
+      if (!ctx || !prizes.length) return;
+      const dpr = window.devicePixelRatio || 1;
+      const size = 440;
+      if (rouletteCanvas.width !== size * dpr) { rouletteCanvas.width = size * dpr; rouletteCanvas.height = size * dpr; }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const cx = size / 2, cy = size / 2, radius = size / 2 - 18;
+      const n = prizes.length, arc = (Math.PI * 2) / n;
+      ctx.clearRect(0, 0, size, size);
+
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
+      ctx.beginPath(); ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
+      ctx.fillStyle = brandDarkerHex; ctx.fill();
+      ctx.restore();
+
+      ctx.beginPath(); ctx.arc(cx, cy, radius + 4, 0, Math.PI * 2);
+      ctx.fillStyle = brandHex; ctx.fill();
+      ctx.lineWidth = 4; ctx.strokeStyle = '#FFFFFF'; ctx.stroke();
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+
+      const fontSize = n <= 6 ? 15 : n <= 9 ? 13 : 11;
+      const maxLabelW = radius - 24 - 52;
+      const showQty = config.ui.showInventory && n <= 8;
+
+      for (let i = 0; i < n; i++) {
+        const item = prizes[i];
+        const start = i * arc, end = start + arc;
+        const out = !item.noPrize && item.stock <= 0;
+
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, radius, start, end); ctx.closePath();
+        ctx.fillStyle = out ? '#94A3B8' : item.color; ctx.fill();
+        ctx.lineWidth = 2.5; ctx.strokeStyle = '#FFFFFF'; ctx.stroke();
+
+        ctx.save();
+        ctx.rotate(start + arc / 2);
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = out ? '#475569' : item.textColor;
+        ctx.font = `bold ${fontSize}px sans-serif`;
+        const label = fitText(ctx, `${item.icon ? item.icon + ' ' : ''}${item.name}${out ? ' (0)' : ''}`, maxLabelW);
+        ctx.fillText(label, radius - 24, showQty ? -6 : 0);
+        if (showQty) {
+          ctx.fillStyle = out ? '#64748B' : 'rgba(255, 255, 255, 0.85)';
+          ctx.font = '600 11px sans-serif';
+          ctx.fillText(out ? 'OUT OF STOCK' : item.noPrize ? '' : `Qty: ${item.stock}`, radius - 24, 12);
+        }
+        ctx.restore();
+      }
+
+      const numPins = n * 4, pinArc = (Math.PI * 2) / numPins;
+      for (let p = 0; p < numPins; p++) {
+        const a = p * pinArc;
+        ctx.beginPath(); ctx.arc(Math.cos(a) * (radius - 2), Math.sin(a) * (radius - 2), 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF'; ctx.fill();
+        ctx.lineWidth = 1; ctx.strokeStyle = brandHex; ctx.stroke();
+      }
+      ctx.restore();
+
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx, cy, 42, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFFFF'; ctx.fill();
+      ctx.lineWidth = 6; ctx.strokeStyle = brandHex; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+      ctx.fillStyle = brandHex; ctx.fill();
+      ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 15px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('★', cx, cy);
+      ctx.restore();
+    }
+
+    function triggerConfetti() {
+      const canvas = $('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx || reducedMotion) return;
+      canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+      const colors = [brandHex, '#0284C7', '#0D9488', '#F59E0B', '#EF4444', '#8B5CF6'];
+      const particles = Array.from({ length: 85 }, () => ({
+        x: canvas.width / 2, y: canvas.height / 2,
+        w: Math.random() * 8 + 6, h: Math.random() * 12 + 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 16, vy: Math.random() * -12 - 4, gravity: 0.35,
+        angle: Math.random() * Math.PI * 2, angularVelocity: (Math.random() - 0.5) * 0.2, opacity: 1
+      }));
+      const startTime = performance.now();
+      (function render(now) {
+        const elapsed = (now - startTime) / 1000;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = 0;
+        particles.forEach(p => {
+          p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.vx *= 0.98; p.angle += p.angularVelocity;
+          if (elapsed > 1.2) p.opacity -= 0.02;
+          if (p.opacity > 0) {
+            active++;
+            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+            ctx.globalAlpha = Math.max(0, p.opacity); ctx.fillStyle = p.color;
+            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+            ctx.restore();
+          }
+        });
+        if (active > 0 && elapsed < 4) requestAnimationFrame(render);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      })(startTime);
+    }
+
+    // ------------------------------------------------------------ spin (one per attendee; the server already chose the prize)
+    function setSpinButton(state) {
+      btnSpinWheel.disabled = state !== 'ready';
+      spinBtnText.textContent = { ready: 'SPIN THE WHEEL', spinning: 'Spinning Wheel…', done: 'Already Played' }[state];
+    }
+
+    function handleSpin() {
+      if (isSpinning || !attendee || attendee.spun) return;
+      const winningIndex = prizes.findIndex(p => p.id === attendee.prize.id);
+      if (winningIndex === -1) {
+        spinStatusMsg.textContent = 'This prize is no longer on the wheel. Please ask booth staff.';
+        return;
+      }
+      isSpinning = true;
+      setSpinButton('spinning');
+      spinStatusMsg.textContent = 'Good luck!';
+
+      const n = prizes.length, arc = (Math.PI * 2) / n;
+      const pointerAngle = (3 * Math.PI) / 2;
+      const jitter = (Math.random() - 0.5) * (arc * 0.5);
+      const target = winningIndex * arc + arc / 2 + jitter;
+
+      let offset = (pointerAngle - target) % (Math.PI * 2);
+      if (offset < 0) offset += Math.PI * 2;
+      const fullSpins = (reducedMotion ? 1 : 6 + Math.floor(Math.random() * 3)) * (Math.PI * 2);
+      const currentNorm = rotationAngle % (Math.PI * 2);
+      let delta = fullSpins + (offset - currentNorm);
+      if (delta < fullSpins) delta += Math.PI * 2;
+
+      const startRot = rotationAngle, endRot = startRot + delta;
+      const duration = reducedMotion ? 1200 : 5400;
+      const startTime = performance.now();
+      const easeOut = t => 1 - Math.pow(1 - t, 3.5);
+
+      function animate(now) {
+        const progress = Math.min(1, (now - startTime) / duration);
+        const cur = startRot + (endRot - startRot) * easeOut(progress);
+        rotationAngle = cur;
+        drawWheel(cur);
+
+        const topAngle = (pointerAngle - (cur % (Math.PI * 2)) + Math.PI * 6) % (Math.PI * 2);
+        const seg = Math.floor(topAngle / arc);
+        if (seg !== lastTickSegment) {
+          lastTickSegment = seg;
+          const speed = 1 - progress;
+          audio.playTick(speed * 4);
+          wheelPointer.style.transform = `translateX(-50%) rotate(${-12 * Math.max(0.2, speed)}deg)`;
+          setTimeout(() => { wheelPointer.style.transform = 'translateX(-50%) rotate(0deg)'; }, 40);
+        }
+
+        if (progress < 1) { requestAnimationFrame(animate); return; }
+
+        rotationAngle = endRot;
+        isSpinning = false;
+        wheelPointer.style.transform = 'translateX(-50%) rotate(0deg)';
+        finishSpin(winningIndex);
+      }
+      requestAnimationFrame(animate);
+    }
+
+    async function finishSpin(winningIndex) {
+      attendee.spun = true;
+      if (pendingInventory) { applyInventory(pendingInventory); pendingInventory = null; }
+      setSpinButton('done');
+      spinStatusMsg.textContent = 'Thanks for playing!';
+      renderInventory();
+      drawWheel(rotationAngle);
+      showWinnerModal(prizes[winningIndex]);
+
+      queueSpun(attendee.entryId);
+      await flushQueue();
+      if (readQueue().some(x => x.event === config.id)) $('modalSyncStatus').classList.remove('hidden');
+    }
+
+    function showWinnerModal(won) {
+      const name = valueText(attendee.values[config.form.summary.titleField]) || 'Registrant';
+      const none = won.noPrize;
+      $('modalBadge').classList.toggle('hidden', none);
+      $('modalHeading').textContent = none ? 'Thank you!' : 'Congratulations!';
+      $('modalWinnerLine').innerHTML = none
+        ? `<strong class="text-slate-800">${esc(name)}</strong>`
+        : `<strong id="modalWinnerName" class="text-brand">${esc(name)}</strong> won:`;
+      $('modalPrizeName').textContent = won.name;
+      $('modalPrizeName').style.color = won.color;
+      $('modalPrizeDesc').textContent = none ? config.ui.noPrizeMessage : won.description;
+      $('modalPrizeStock').textContent = won.stock;
+      $('modalStockLine').classList.toggle('hidden', none || !config.ui.showInventory);
+      $('modalPrizeIconBox').textContent = won.icon || '🎁';
+      $('modalPrizeIconBox').style.backgroundColor = won.color;
+      $('modalPrizeCard').style.borderColor = won.color;
+      $('modalPrizeCard').style.backgroundColor = `${won.color}10`;
+      winnerModal.classList.remove('hidden');
+      $('btnModalNextAttendee').focus();
+      if (none) audio.playSoft(); else { audio.playWin(); triggerConfetti(); }
+    }
+
+    // ------------------------------------------------------------ views
+    function showWheelView() {
+      showOnly(viewWheel);
+      const sum = config.form.summary, v = attendee.values;
+      $('displayTitle').textContent = valueText(v[sum.titleField]) || 'Registered Attendee';
+      const sub = sum.subtitleField ? valueText(v[sum.subtitleField]) : '';
+      $('displaySubtitle').textContent = sub ? `(${sub})` : '';
+      $('displayDetail').textContent = sum.detailFields.map(id => valueText(v[id])).filter(Boolean).join(' • ');
+      setSpinButton(attendee.spun ? 'done' : 'ready');
+      spinStatusMsg.textContent = attendee.spun ? 'Thanks for playing!' : 'Ready to spin!';
+      renderInventory();
+      drawWheel(rotationAngle);
+    }
+
+    function showFormView(clear) {
+      closeWinner();
+      showOnly(viewForm);
+      if (clear) { clearForm(); attendee = null; pendingInventory = null; }
+      refreshInventory();
+    }
+
+    // ------------------------------------------------------------ submit
+    async function onSubmit(e) {
+      e.preventDefault();
+      showAlert('');
+      if (!validateForm()) return;
+
+      const values = {};
+      config.form.fields.forEach(f => { values[f.id] = getValue(f); });
+      const dedupeF = fieldById(config.form.dedupeField);
+
+      btnSubmitForm.disabled = true;
+      submitBtnText.textContent = 'Registering…';
+      try {
+        const res = await api('register', {
+          fields: config.form.fields.map(f => ({ id: f.id, label: f.label, value: valueText(values[f.id]) })),
+          dedupeKey: normalizeKey(dedupeF, values[dedupeF.id]),
+          consent: config.form.consent.enabled ? $('inputConsent').checked : null
+        });
+
+        if (res.ok) {
+          attendee = { values, entryId: res.entryId, prize: res.prize, spun: false };
+          pendingInventory = res.inventory || null; // revealed only after the spin ends
+          showWheelView();
+          if (res.status === 'resume') spinStatusMsg.textContent = 'Welcome back! Your spin is ready.';
+        } else if (res.error === 'already_played') {
+          showAlert('This person is already registered and has played. Each person can enter only once.');
+        } else if (res.error === 'out_of_stock') {
+          showAlert('Sorry, all prizes have been given out.');
+        } else {
+          showAlert(res.message || 'Something went wrong. Please try again.');
+        }
+      } catch (err) {
+        showAlert('Can’t reach the server. Check the internet connection and try again. Nothing has been saved.');
+      } finally {
+        btnSubmitForm.disabled = false;
+        submitBtnText.textContent = config.form.submitLabel || 'Proceed to Lucky Wheel';
+      }
+    }
+
+    function sampleValue(f) {
+      const n = Math.floor(Math.random() * 90000 + 10000);
+      switch (f.type) {
+        case 'email': return `demo${n}@example.com`;
+        case 'tel': return `+63 917 ${String(n).slice(0, 3)} ${String(n).slice(2)}`;
+        case 'select': return f.options[0];
+        case 'radio': return f.options[0];
+        case 'checkboxes': return [f.options[0]];
+        default: return `Sample ${f.label} ${n}`;
+      }
+    }
+    function fillSample() {
+      config.form.fields.forEach(f => {
+        const v = sampleValue(f), el = $('f_' + f.id);
+        if (f.type === 'checkboxes') el.querySelectorAll('input').forEach(i => { i.checked = v.includes(i.value); });
+        else if (f.type === 'radio') el.querySelectorAll('input').forEach(i => { i.checked = i.value === v; });
+        else el.value = v;
+        setError(f.id, '');
+      });
+      if (config.form.consent.enabled) $('inputConsent').checked = true;
+    }
+
+    // ------------------------------------------------------------ modals
+    function closeWinner() { winnerModal.classList.add('hidden'); }
+
+    async function adminCall(op, extra = {}) {
+      return api('admin', { pin: adminPin, op, ...extra });
+    }
+    function adminMessage(msg, bad) {
+      const m = $('adminMsg');
+      m.textContent = msg || '';
+      m.className = 'mt-3 text-xs font-semibold ' + (msg ? '' : 'hidden ') + (bad ? 'text-rose-700' : 'text-emerald-700');
+    }
+    function renderAdmin(res) {
+      const c = res.counts || { entries: 0, spun: 0 };
+      $('adminCounts').innerHTML = [['Entries', c.entries], ['Spins done', c.spun]].map(([k, v]) =>
+        `<div class="p-3 rounded-xl bg-slate-50 border border-slate-200"><div class="text-2xl font-black text-brand">${v}</div><div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">${k}</div></div>`).join('');
+      $('adminInventory').innerHTML = `<table class="w-full text-left"><thead><tr class="text-[11px] uppercase tracking-wider text-slate-500"><th class="py-1">Prize</th><th class="py-1 text-right">Stock</th></tr></thead><tbody>${
+        (res.inventory || []).map(p => `<tr class="border-t border-slate-100"><td class="py-1.5 font-semibold text-slate-800">${esc(p.name)}</td><td class="py-1.5 text-right">${p.noPrize ? '∞' : `${p.stock} / ${p.initialStock}`}</td></tr>`).join('')
+      }</tbody></table>`;
+    }
+    async function adminRefresh() {
+      try {
+        const r = await adminCall('status');
+        if (r.ok) { renderAdmin(r); applyInventory(r.inventory); }
+        else adminMessage(r.message || 'Could not load status.', true);
+      } catch { adminMessage('Can’t reach the server.', true); }
+    }
+    function openAdmin() {
+      adminPin = '';
+      $('adminLogin').classList.remove('hidden');
+      $('adminPanel').classList.add('hidden');
+      $('adminPin').value = '';
+      adminMessage('');
+      adminModal.classList.remove('hidden');
+      $('adminPin').focus();
+    }
+    function closeAdmin() {
+      adminPin = '';
+      adminModal.classList.add('hidden');
+      renderInventory(); drawWheel(rotationAngle);
+    }
+
+    const csvCell = v => {
+      let s = String(v ?? '');
+      if (/^[=@]/.test(s) || (/^[+-]/.test(s) && !/^[+-]?[\d\s().-]+$/.test(s))) s = "'" + s; // spreadsheet formula guard
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+
+    async function adminExport() {
+      try {
+        const r = await adminCall('export');
+        if (!r.ok) return adminMessage(r.message || 'Export failed.', true);
+        const csv = [r.headers, ...r.rows].map(row => row.map(csvCell).join(',')).join('\r\n');
+        const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+        const a = document.createElement('a');
+        a.href = url; a.download = `${config.id}-entries-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        adminMessage(`Exported ${r.rows.length} entries.`);
+      } catch { adminMessage('Can’t reach the server.', true); }
+    }
+
+    async function adminReset(clearEntries) {
+      const q = clearEntries
+        ? 'Reset ALL prize stock and archive the current entries?\n\nEveryone will be able to register again. Entries are renamed in the sheet, not deleted.'
+        : 'Reset all prize stock to its starting amount? Entries are kept.';
+      if (!confirm(q)) return;
+      try {
+        const r = await adminCall('reset', { clearEntries });
+        if (r.ok) { renderAdmin(r); applyInventory(r.inventory); adminMessage(r.archived ? `Reset. Entries archived as “${r.archived}”.` : 'Prize stock reset.'); }
+        else adminMessage(r.message || 'Reset failed.', true);
+      } catch { adminMessage('Can’t reach the server.', true); }
+    }
+
+    // ------------------------------------------------------------ idle auto-reset (kiosk)
+    let idleTimer = null;
+    function armIdle() {
+      clearTimeout(idleTimer);
+      const s = config && config.behavior.autoResetSeconds;
+      if (s > 0) idleTimer = setTimeout(onIdle, s * 1000);
+    }
+    function onIdle() {
+      if (isSpinning || !adminModal.classList.contains('hidden')) return armIdle();
+      if (!viewForm.classList.contains('hidden')) { if (formDirty()) clearForm(); }
+      else if (!viewWheel.classList.contains('hidden')) showFormView(true);
+      armIdle();
+    }
+
+    // ------------------------------------------------------------ start
+    function wire() {
+      registrationForm.addEventListener('submit', onSubmit);
+      registrationForm.addEventListener('input', e => {
+        const holder = e.target.closest('[data-field]');
+        if (holder) setError(holder.dataset.field, '');
+        if (e.target.id === 'inputConsent') $('errConsent').classList.add('hidden');
+      });
+      $('btnFillSample').addEventListener('click', fillSample);
+      btnSpinWheel.addEventListener('click', handleSpin);
+
+      $('btnRegisterNext').addEventListener('click', () => {
+        if (isSpinning) return;
+        if (attendee && !attendee.spun &&
+          !confirm('This attendee has not spun yet. Leave anyway?\n\nThey can come back and re-enter the same email/number to resume their spin.')) return;
+        showFormView(true);
+      });
+
+      $('btnCloseModal').addEventListener('click', closeWinner);
+      $('btnModalNextAttendee').addEventListener('click', () => showFormView(true));
+
+      $('btnToggleSound').addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        $('iconVolumeOn').classList.toggle('hidden', !soundEnabled);
+        $('iconVolumeOff').classList.toggle('hidden', soundEnabled);
+      });
+
+      const fsBtn = $('btnFullscreen');
+      if (!document.documentElement.requestFullscreen) fsBtn.classList.add('hidden');
+      fsBtn.addEventListener('click', () => {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen().catch(() => {});
+      });
+
+      $('btnAdmin').addEventListener('click', openAdmin);
+      $('btnAdminClose').addEventListener('click', closeAdmin);
+      $('adminLogin').addEventListener('submit', async e => {
+        e.preventDefault();
+        const btn = e.submitter; if (btn) btn.disabled = true;
+        adminPin = $('adminPin').value;
+        try {
+          const r = await adminCall('status');
+          if (r.ok) {
+            $('adminLogin').classList.add('hidden'); $('adminPanel').classList.remove('hidden');
+            adminMessage(''); renderAdmin(r); applyInventory(r.inventory);
+          } else { adminPin = ''; adminMessage(r.message || 'Could not unlock.', true); }
+        } catch { adminPin = ''; adminMessage('Can’t reach the server.', true); }
+        finally { if (btn) btn.disabled = false; }
+      });
+      $('btnAdminRefresh').addEventListener('click', adminRefresh);
+      $('btnAdminExport').addEventListener('click', adminExport);
+      $('btnAdminResetStock').addEventListener('click', () => adminReset(false));
+      $('btnAdminResetAll').addEventListener('click', () => adminReset(true));
+
+      document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (!adminModal.classList.contains('hidden')) closeAdmin();
+        else if (!winnerModal.classList.contains('hidden')) closeWinner();
+      });
+
+      window.addEventListener('resize', () => { if (!viewWheel.classList.contains('hidden')) drawWheel(rotationAngle); });
+      window.addEventListener('online', () => { flushQueue(); refreshInventory(true); });
+      ['pointerdown', 'keydown', 'input'].forEach(ev => document.addEventListener(ev, armIdle, { passive: true }));
+      setInterval(flushQueue, 30000);
+    }
+
+    async function main() {
+      try {
+        config = await loadConfig();
+      } catch (err) {
+        $('errorText').textContent = err instanceof UserError ? err.message : 'Something went wrong while loading the event.';
+        if (!(err instanceof UserError)) console.error(err);
+        showOnly(viewError);
+        return;
+      }
+
+      document.title = config.pageTitle;
+      $('headerTitle').textContent = config.headerTitle;
+      if (config.logoUrl) { const img = $('headerLogo'); img.src = config.logoUrl; img.classList.remove('hidden'); }
+      applyBrand(config.brandColor);
+      soundEnabled = config.behavior.sound !== false;
+      $('iconVolumeOn').classList.toggle('hidden', !soundEnabled);
+      $('iconVolumeOff').classList.toggle('hidden', soundEnabled);
+      $('demoBanner').classList.toggle('hidden', !DEMO);
+      if (DEMO) setConn(true);
+
+      prizes = config.prizes.map(p => ({ ...p }));
+      buildForm();
+      wire();
+      renderInventory();
+      drawWheel(0);
+      showOnly(viewForm);
+      armIdle();
+
+      refreshInventory(true);
+      flushQueue();
+    }
+
+    main();
+  })();
+  </script>
+  <script>
+    // Lets the page itself load without internet after the first visit. Registering still needs the server.
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+    }
+  </script>
+</body>
+</html>
